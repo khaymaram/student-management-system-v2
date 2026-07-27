@@ -1,0 +1,43 @@
+// types/index.ts defines the shared frontend type schemas for students.
+// StudentSchema describes the API shape and StudentInputSchema validates form data.
+import {z} from "zod";
+
+// StudentSchema describes the API response shape returned by the backend.
+export const StudentSchema = z.object({
+    id: z.number().optional(),
+    studentId: z.number(),
+    name: z.string(),
+    grade: z.number(),
+    gpa: z.number(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+});
+export type Student = z.infer<typeof StudentSchema>;
+
+// StudentInputSchema validates the form data before it is sent to the API.
+export const StudentInputSchema = z.object({
+    studentId: z.coerce.number().int().positive("Student ID must be a positive number"),
+    name: z.string().min(1, "Name is required"),
+    grade: z.coerce.number().int().min(0, "Grade must be a non-negative number"),
+    gpa: z.coerce.number().min(0, "GPA must be between 0.0 and 4.0")
+});
+export type StudentInput = z.infer<typeof StudentInputSchema>;
+
+export const CourseSchema = z.object({
+    id: z.number().optional(),
+    courseId: z.number(),
+    title: z.string(),
+    code: z.string(),
+    credits: z.number(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+});
+export type Course = z.infer<typeof CourseSchema>;
+
+export const CourseInputSchema = z.object({
+    title: z.string().min(1, "Course title is required"),
+    credits: z.coerce.number().int().min(0, "Credits must be a non-negative number"),
+    code: z.string().min(1, "Course code is required")
+})
+export type CourseInput = z.infer<typeof CourseInputSchema>;
+

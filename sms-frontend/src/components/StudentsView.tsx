@@ -94,8 +94,8 @@ export function StudentsView() {
 
   return (
     <div>
-      <h2 className="section-title">Student roster</h2>
-      <p className="section-sub">View, filter, edit, or remove students on file.</p>
+      <h2 className="section-title">Student Roster</h2>
+      <p className="section-sub">View, filter, edit, add or remove students on file.</p>
 
       {banner && <div className={`banner banner-${banner.type}`}>{banner.text}</div>}
 

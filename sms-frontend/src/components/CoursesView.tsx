@@ -92,7 +92,7 @@ export function CoursesView() {
   return (
     <div>
       <h2 className="section-title">Course Directory</h2>
-      <p className="section-sub">View, filter, edit, or remove courses.</p>
+      <p className="section-sub">View, filter, edit, add or remove courses.</p>
 
       {banner && <div className={`banner banner-${banner.type}`}>{banner.text}</div>}
 

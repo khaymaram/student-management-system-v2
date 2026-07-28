@@ -39,7 +39,7 @@
   margin: 0 0 16px;
   padding: 6px 8px;
   border-bottom: 1px solid var(--line);
-  background: #fff;
+  background: var(--paper-raised);
 }
 
 .tab {
@@ -287,22 +287,7 @@
   transform: rotate(-2deg);
 }
 
-.banner {
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
 
-.banner-error {
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
-.banner-success {
-  background: var(--forest-soft);
-  color: var(--forest);
-}
 
 /* ---------- Courses ---------- */
 .course-cards {
@@ -439,4 +424,21 @@
   gap: 8px;
   justify-content: flex-end;
   margin-top: 1rem;
+}
+
+.banner {
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.banner-error {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.banner-success {
+  background: var(--forest-soft);
+  color: var(--forest);
 }

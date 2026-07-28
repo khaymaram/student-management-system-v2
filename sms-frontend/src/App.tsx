@@ -1,8 +1,6 @@
 import logo from './assets/logo.png'
 import './App.css'
 import { useState } from "react";
-import "./App.css";
-import { AddStudentForm } from "./components/AddStudentForm";
 import { StudentsView } from "./components/StudentsView";
 import { CoursesView } from './components/CoursesView';
 
@@ -19,7 +17,7 @@ function App() {
   const [tab, setTab] = useState<Tab>("roster");
 
   return (
-    <>   
+    <div className="app">
     <nav className="tabs">
         {TABS.map((t) => (
           <button
@@ -39,6 +37,7 @@ function App() {
           <h2>Simple Student Management System</h2>
         </div>
       </section>
+      <hr className="thin-line"></hr>
 
 
    
@@ -50,7 +49,7 @@ function App() {
       </section>
 
     
-    </>
+    </div>
   )
 }
 

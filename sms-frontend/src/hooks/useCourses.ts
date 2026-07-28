@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { api, get, post, put } from "../lib/axios"
+import { api, get, post } from "../lib/axios"
 import type { Course, CourseInput } from "../types";
 
 export type CourseFilter =

@@ -1,81 +1,92 @@
 .app {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 0;
 }
 
 .logo {
-  width: 170px;
+  width: 150px;
 }
 
 .title {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 16px 22px;
-  border: 1px solid var(--line);
+  padding: 15px 22px;
+  /* border: 1px solid var(--line);
   border-radius: 16px;
   background-color: var(--brass-soft);
-  box-shadow: var(--shadow);
-  margin: 14px 0;
+  box-shadow: var(--shadow); */
+  margin: 10px 0px;
+}
+
+.thin-line {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 20px 0px 30px;
 }
 
 .title h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: 35px;
 }
 
 /* ---------- Folder tabs ---------- */
 .tabs {
   display: flex;
-  gap: 4px;
-  margin-top: 0;
-  margin-bottom: 15px;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
 }
 
 .tab {
   font-family: var(--display);
   font-size: 15px;
   color: var(--ink-soft);
-  background: var(--line);
+  background: transparent;
   border: none;
-  border-radius: 8px 8px 0 0;
-  padding: 10px 20px 9px;
+  border-radius: 6px;
+  padding: 8px 12px;
   cursor: pointer;
-  position: relative;
-  top: 1px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .tab:hover {
-  color: var(--ink);
+  color: var(--forest);
+  background: var(--forest-soft);
 }
 
 .tab.active {
-  background: var(--paper-raised);
-  color: var(--ink);
-  font-weight: 500;
-  box-shadow: 0 -2px 0 var(--brass) inset;
+  background: var(--forest-soft);
+  color: var(--forest);
+  font-weight: 600;
 }
 
 .tab-panel {
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-top: none;
-  border-radius: 0 0 10px 10px;
-  padding: 28px;
-  box-shadow: var(--shadow);
+  flex: 1;
+  background: transparent;
+  margin-left: 30px;
+  margin-right: 30px;
+  overflow: auto;
 }
 
 @media (max-width: 640px) {
-  .tab-panel { padding: 20px; }
-  .tabs { flex-wrap: wrap; }
+  .tab-panel {
+    padding: 20px;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
 }
 
 /* ---------- Section headings ---------- */
 
 .section-title {
-  font-size: 20px;
+  font-size: 25px;
   margin-bottom: 4px;
 }
 
@@ -93,7 +104,9 @@
 }
 
 @media (max-width: 560px) {
-  .form-grid { grid-template-columns: 1fr; }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .field {
@@ -109,7 +122,8 @@
   color: var(--ink-soft);
 }
 
-.field input, .field select {
+.field input,
+.field select {
   border: 1px solid var(--line-strong);
   border-radius: 6px;
   padding: 9px 11px;
@@ -118,7 +132,8 @@
   background: #fff;
 }
 
-.field input:focus, .field select:focus {
+.field input:focus,
+.field select:focus {
   outline: 2px solid var(--forest);
   outline-offset: 1px;
   border-color: var(--forest);
@@ -156,21 +171,30 @@
   background: var(--forest);
   color: #fff;
 }
-.btn-primary:hover { filter: brightness(1.08); }
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
 
 .btn-outline {
   background: transparent;
   border-color: var(--line-strong);
   color: var(--ink);
 }
-.btn-outline:hover { border-color: var(--ink); }
+
+.btn-outline:hover {
+  border-color: var(--ink);
+}
 
 .btn-danger {
   background: transparent;
   color: var(--danger);
   border-color: var(--danger-soft);
 }
-.btn-danger:hover { background: var(--danger-soft); }
+
+.btn-danger:hover {
+  background: var(--danger-soft);
+}
 
 .btn-small {
   padding: 5px 11px;
@@ -188,7 +212,8 @@
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  margin-left: 10px;
 }
 
 .filter-bar .field {
@@ -353,9 +378,17 @@
   font-size: 13.5px;
 }
 
-.edit-row-form input[name="name"] { width: 140px; }
-.edit-row-form input[name="grade"] { width: 60px; }
-.edit-row-form input[name="gpa"] { width: 60px; }
+.edit-row-form input[name="name"] {
+  width: 140px;
+}
+
+.edit-row-form input[name="grade"] {
+  width: 60px;
+}
+
+.edit-row-form input[name="gpa"] {
+  width: 60px;
+}
 
 /* ---------- Pop Up ---------- */
 .modal-backdrop {
@@ -407,4 +440,3 @@
   justify-content: flex-end;
   margin-top: 1rem;
 }
-

@@ -11,16 +11,10 @@ import (
 func Seed(db *gorm.DB) error {
 	students := []models.Student{
 		{
-			ID:    1067,
-			Name:  "Kathy Bates",
-			Grade: 2,
-			GPA:   3.67,
-		},
-		{
-			ID:    1041,
-			Name:  "Tina Turner",
+			ID:    1122,
+			Name:  "Happy Birthday",
 			Grade: 1,
-			GPA:   3.57,
+			GPA:   3.2,
 		},
 	}
 	courses := []models.Course{

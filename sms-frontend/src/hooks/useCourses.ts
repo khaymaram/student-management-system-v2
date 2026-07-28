@@ -64,8 +64,8 @@ export function useUpdateCourses() {
     // Update an existing course and invalidate cached queries so the UI refreshes.
     // This keeps the roster view in sync with the backend after an edit.
     return useMutation({
-        mutationFn: async ({ courseId, input }: { courseId: number; input: CourseInput}) => {
-            const {data} = await api.put(`/courses/${courseId}`, input);
+        mutationFn: async ({ courseCode, input }: { courseCode: string; input: CourseInput}) => {
+            const {data} = await api.put(`/courses/${courseCode}`, input);
             return data;
         },
         onSuccess: () => {

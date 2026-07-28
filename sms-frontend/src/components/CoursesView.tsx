@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../hooks/useCourses";
 import { apiErrorMessage } from "../lib/axios";
 import { CourseInputSchema, type Course, type CourseInput } from "../types";
@@ -12,12 +12,18 @@ export function CoursesView() {
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingCode, setEditingCode] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
   const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof CourseInput, string>>>({});
 
+  useEffect(() => {
+    if (!banner) return;
+
+    const timer = window.setTimeout(() => setBanner(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [banner]);
 
   const filter: CourseFilter =
     mode === "credits" && creditInput
@@ -161,33 +167,31 @@ export function CoursesView() {
         <table className="ledger">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Course Code</th>
               <th>Title</th>
               <th>Credits</th>
-              <th>Course Code</th>
+              
               <th></th>
             </tr>
           </thead>
           <tbody>
             {courses.map((course) =>
-              editingId === course.courseId ? (
+              editingCode === course.code ? (
                 <EditRow
-                  key={course.courseId}
+                  key={course.code}
                   course={course}
-                  onDone={() => setEditingId(null)}
+                  onDone={() => setEditingCode(null)}
                   onNotify={setBanner}
                 />
               ) : (
-                <tr key={course.courseId}>
-                  <td>
-                    <span className="student-id-badge">#{course.courseId}</span>
-                  </td>
+                <tr key={course.code}>
+                  <td><span className="student-id-badge">{course.code}</span></td>
                   <td>{course.title}</td>
                   <td>{course.credits}</td>
-                  <td>{course.code}</td>
+                  
                   <td>
                     <div className="row-actions">
-                      <button className="btn btn-outline btn-small" onClick={() => setEditingId(course.courseId)}>
+                      <button className="btn btn-outline btn-small" onClick={() => setEditingCode(course.code)}>
                         Edit
                       </button>
                       <button
@@ -318,7 +322,7 @@ function EditRow({
       return;
     }
     updateCourse.mutate(
-      { courseId: course.courseId, input: { title, credits: creditsNum, code } },
+      { courseCode: course.code, input: { title, credits: creditsNum, code } },
       {
         onSuccess: () => {
           onNotify({ type: "success", text: `Updated ${code}'s record.` });
@@ -331,14 +335,12 @@ function EditRow({
 
   return (
     <tr>
-      <td>
-        <span className="student-id-badge">#{course.courseId}</span>
-      </td>
       <td colSpan={3}>
         <form className="edit-row-form" onSubmit={handleSave}>
+          <input name="code" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Code" />
           <input name="title" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
           <input name="credits" value={credits} onChange={(e) => setCredits(e.target.value)} aria-label="Credits" />
-          <input name="code" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Code" />
+          
           <button type="submit" className="btn btn-primary btn-small" disabled={updateCourse.isPending}>
             Save
           </button>

@@ -110,7 +110,7 @@ func Setup(
 			)
 
 			courses.PUT(
-				"/:courseId",
+				"/:code",
 				courseHandler.Update,
 			)
 

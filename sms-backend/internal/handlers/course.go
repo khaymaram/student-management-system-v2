@@ -106,15 +106,16 @@ func (h *CourseHandler) Create(c *gin.Context) {
 
 // PUT /courses/:id
 func (h *CourseHandler) Update(c *gin.Context) {
-	courseId, err := strconv.Atoi(c.Param("courseId"))
-	if err != nil {
-		helpers.ErrorResponse(
-			c,
-			http.StatusBadRequest,
-			"invalid id",
-		)
-		return
-	}
+	// courseId, err := strconv.Atoi(c.Param("courseId"))
+	courseCode := c.Param("code")
+	// if err != nil {
+	// 	helpers.ErrorResponse(
+	// 		c,
+	// 		http.StatusBadRequest,
+	// 		"invalid id",
+	// 	)
+	// 	return
+	// }
 
 	var req dto.UpdateCourseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -126,7 +127,7 @@ func (h *CourseHandler) Update(c *gin.Context) {
 		return
 	}
 
-	err = h.service.Update(courseId, req)
+	err := h.service.Update(courseCode, req)
 	if err != nil {
 		helpers.ErrorResponse(
 			c,

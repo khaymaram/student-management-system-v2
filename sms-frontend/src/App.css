@@ -203,7 +203,7 @@
 }
 
 .ledger thead th {
-  text-align: left;
+  text-align: center;
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: 0.08em;

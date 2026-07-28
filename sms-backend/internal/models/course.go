@@ -3,11 +3,10 @@ package models
 import "time"
 
 type Course struct {
-	ID uint `gorm:"column:id;primaryKey" json:"courseId"`
+	// ID uint `gorm:"column:id;primaryKey" json:"courseId"`
+	Code string `gorm:"column:code;primaryKey" json:"code"`
 
 	Title string `gorm:"column:title" json:"title"`
-
-	Code string `gorm:"column:code" json:"code"`
 
 	Credits int `gorm:"column:credits" json:"credits"`
 

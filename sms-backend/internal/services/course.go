@@ -16,7 +16,7 @@ type CourseService interface {
 
 	Create(dto.CreateCourseRequest) error
 
-	Update(id int, req dto.UpdateCourseRequest) error
+	Update(code string, req dto.UpdateCourseRequest) error
 
 	Delete(code string) error
 
@@ -73,31 +73,31 @@ func (c *courseService) Create(req dto.CreateCourseRequest) error {
 	return c.repository.Create(&course)
 }
 
-func (c *courseService) Update(id int, req dto.UpdateCourseRequest) error {
-	courses, err := c.repository.GetAll()
+func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
+	course, err := c.repository.GetByCode(code)
 	if err != nil {
 		return err
 	}
 
-	var course *models.Course
-	for i := range courses {
-		if int(courses[i].ID) == id {
-			course = &courses[i]
-			break
-		}
-	}
+	// var course *models.Course
+	// for i := range courses {
+	// 	if int(courses[i].ID) == id {
+	// 		course = &courses[i]
+	// 		break
+	// 	}
+	// }
 
-	if course == nil {
-		return gorm.ErrRecordNotFound
-	}
+	// if course == nil {
+	// 	return gorm.ErrRecordNotFound
+	// }
 
 	if req.Title != "" {
 		course.Title = req.Title
 	}
 
-	if req.Code != "" {
-		course.Code = req.Code
-	}
+	// if req.Code != "" {
+	// 	course.Code = req.Code
+	// }
 
 	if req.Credits != 0 {
 		course.Credits = req.Credits

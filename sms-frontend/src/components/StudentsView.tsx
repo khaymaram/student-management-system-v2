@@ -1,5 +1,5 @@
 // StudentsView.tsx renders the roster UI and handles filtering, editing, and deletion.
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useDeleteStudent, useStudents, useUpdateStudent, useCreateStudent, type StudentFilter } from "../hooks/useStudents";
 import { apiErrorMessage } from "../lib/axios";
 import type { Student } from "../types";
@@ -16,6 +16,13 @@ export function StudentsView() {
   const [nameInput, setNameInput] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [banner, setBanner] = useState<{ type: "error" | "success"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!banner) return;
+
+    const timer = window.setTimeout(() => setBanner(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [banner]);
 
   // const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   // const [addForm, setAddForm] = useState(emptyForm);

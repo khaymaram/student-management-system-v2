@@ -2,7 +2,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useDeleteStudent, useStudents, useUpdateStudent, useCreateStudent, type StudentFilter } from "../hooks/useStudents";
 import { apiErrorMessage } from "../lib/axios";
-import type { Student } from "../types";
+import { StudentInputSchema, type Student, type StudentInput } from "../types";
 
 type FilterMode = "all" | "grade" | "honors" | "search" | "name";
 
@@ -16,6 +16,9 @@ export function StudentsView() {
   const [nameInput, setNameInput] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [banner, setBanner] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addForm, setAddForm] = useState(emptyForm);
+  const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof StudentInput, string>>>({});
 
   useEffect(() => {
     if (!banner) return;
@@ -23,10 +26,6 @@ export function StudentsView() {
     const timer = window.setTimeout(() => setBanner(null), 3000);
     return () => window.clearTimeout(timer);
   }, [banner]);
-
-  // const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  // const [addForm, setAddForm] = useState(emptyForm);
-  // const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof StudentInput, string>>>({});
 
   const filter: StudentFilter =
     mode === "grade" && gradeInput
@@ -51,6 +50,45 @@ export function StudentsView() {
     deleteStudent.mutate(student.studentId, {
       onSuccess: () => setBanner({ type: "success", text: `Removed ${student.name} from the roster.` }),
       onError: (err) => setBanner({ type: "error", text: apiErrorMessage(err) }),
+    });
+  }
+
+  function handleAddFormChange(field: keyof typeof addForm, value: string) {
+    setAddForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function openAddStudentModal() {
+    setAddForm({ ...emptyForm });
+    setAddFieldErrors({});
+    setBanner(null);
+    setIsAddModalOpen(true);
+  }
+
+  function addStudent(e: FormEvent) {
+    e.preventDefault();
+    setBanner(null);
+
+    const result = StudentInputSchema.safeParse(addForm);
+    if (!result.success) {
+      const errors: Partial<Record<keyof StudentInput, string>> = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof StudentInput;
+        errors[key] = issue.message;
+      }
+      setAddFieldErrors(errors);
+      return;
+    }
+
+    setAddFieldErrors({});
+    createStudent.mutate(result.data, {
+      onSuccess: () => {
+        setAddForm({ ...emptyForm });
+        setIsAddModalOpen(false);
+        setBanner({ type: "success", text: `Enrolled ${result.data.name} (ID ${result.data.studentId}) in the roster.` });
+      },
+      onError: (err) => {
+        setBanner({ type: "error", text: apiErrorMessage(err) });
+      },
     });
   }
 
@@ -176,6 +214,107 @@ export function StudentsView() {
             )}
           </tbody>
         </table>
+      )}
+      <br></br>
+      <button type="button" className="btn btn-primary" onClick={openAddStudentModal}>Enroll a Student</button>
+
+      {isAddModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="modal-backdrop"
+          onClick={() => {
+            setIsAddModalOpen(false);
+            setAddForm({ ...emptyForm });
+            setAddFieldErrors({});
+          }}
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3 className="modal-title">Enroll a Student</h3>
+              <button
+                type="button"
+                className="btn btn-outline btn-small"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setAddForm({ ...emptyForm });
+                  setAddFieldErrors({});
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <form className="modal-form" onSubmit={addStudent}>
+              <div className="field">
+                <label htmlFor="studentId">Student ID</label>
+                <input
+                  id="studentId"
+                  inputMode="numeric"
+                  placeholder="1005"
+                  value={addForm.studentId}
+                  onChange={(e) => handleAddFormChange("studentId", e.target.value)}
+                />
+                {addFieldErrors.studentId && <p className="field-error">{addFieldErrors.studentId}</p>}
+              </div>
+
+              <div className="field">
+                <label htmlFor="name">Full Name</label>
+                <input
+                  id="name"
+                  placeholder="Khaymar Moe"
+                  value={addForm.name}
+                  onChange={(e) => handleAddFormChange("name", e.target.value)}
+                />
+                {addFieldErrors.name && <p className="field-error">{addFieldErrors.name}</p>}
+              </div>
+
+              <div className="field">
+                <label htmlFor="grade">Grade</label>
+                <input
+                  id="grade"
+                  inputMode="numeric"
+                  placeholder="3"
+                  value={addForm.grade}
+                  onChange={(e) => handleAddFormChange("grade", e.target.value)}
+                />
+                {addFieldErrors.grade && <p className="field-error">{addFieldErrors.grade}</p>}
+              </div>
+
+              <div className="field">
+                <label htmlFor="gpa">GPA</label>
+                <input
+                  id="gpa"
+                  inputMode="decimal"
+                  placeholder="3.8"
+                  value={addForm.gpa}
+                  onChange={(e) => handleAddFormChange("gpa", e.target.value)}
+                />
+                {addFieldErrors.gpa && <span className="field-error">{addFieldErrors.gpa}</span>}
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-small"
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setAddForm({ ...emptyForm });
+                    setAddFieldErrors({});
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary btn-small" disabled={createStudent.isPending}>
+                  {createStudent.isPending ? "Saving..." : "Save Course"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

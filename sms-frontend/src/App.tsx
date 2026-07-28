@@ -6,11 +6,11 @@ import { AddStudentForm } from "./components/AddStudentForm";
 import { StudentsView } from "./components/StudentsView";
 import { CoursesView } from './components/CoursesView';
 
-type Tab = "roster" | "add" | "courses";
+type Tab = "roster" | "courses";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "roster", label: "Roster" },
-  { id: "add", label: "Add student" },
+  // { id: "add", label: "Add student" },
   { id: "courses", label: "Courses" },
 ];
 
@@ -45,7 +45,7 @@ function App() {
 
       <section className="tab-panel">
         {tab === "roster" && <StudentsView />}
-        {tab === "add" && <AddStudentForm />}
+        {/* {tab === "add" && <AddStudentForm />} */}
         {tab === "courses" && <CoursesView/>}
       </section>
 

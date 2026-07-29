@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
 import SidebarItem from '../ui/SidebarItem';
 import { navigationItems } from '@/data/navigation';
-import logo from '@/assets/logo.png';
+const logo = new URL('../../assets/logo.png', import.meta.url).href;
 
 const AppSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);

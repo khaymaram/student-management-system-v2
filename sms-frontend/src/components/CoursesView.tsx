@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../hooks/useCourses";
 import { apiErrorMessage } from "../lib/axios";
@@ -10,6 +10,7 @@ import { Button } from "./ui/Button";
 import Input from "./ui/Input";
 import Modal from "./ui/Modal";
 import { Badge } from "./ui/Badge";
+import { RosterModal } from "./RosterModal";
 import {
   Select,
   SelectContent,
@@ -27,10 +28,18 @@ export function CoursesView() {
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
-  const [editingCode, setEditingCode] = useState<string | null>(null);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [rosterCourse, setRosterCourse] = useState<Course | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
-  const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof CourseInput, string>>>({});
+
+  const [addFieldErrors, setAddFieldErrors] =
+    useState<Partial<Record<keyof CourseInput, string>>>({});
+
+  const [editForm, setEditForm] = useState(emptyForm);
+
+  const [editFieldErrors, setEditFieldErrors] =
+    useState<Partial<Record<keyof CourseInput, string>>>({});
 
   const filter: CourseFilter =
     mode === "credits" && creditInput
@@ -44,6 +53,8 @@ export function CoursesView() {
   const { data: courses, isLoading, isError, error } = useCourses(filter);
   const deleteCourse = useDeleteCourse();
   const createCourse = useCreateCourse();
+  const updateCourse = useUpdateCourses();
+
 
   function handleDelete(course: Course) {
     if (!window.confirm(`Remove ${course.title} (${course.code}) from the directory`)) return;
@@ -56,7 +67,33 @@ export function CoursesView() {
   function handleAddFormChange(field: keyof typeof addForm, value: string) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   }
+  function handleEditFormChange(
+    field: keyof typeof editForm,
+    value: string
+  ) {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
 
+  function openEditCourseModal(course: Course) {
+    setEditingCourse(course);
+
+    setEditForm({
+      title: course.title,
+      credits: String(course.credits),
+      code: course.code,
+    });
+
+    setEditFieldErrors({});
+  }
+
+  function closeEditCourseModal() {
+    setEditingCourse(null);
+    setEditForm({ ...emptyForm });
+    setEditFieldErrors({});
+  }
   function openAddCourseModal() {
     setAddForm({ ...emptyForm });
     setAddFieldErrors({});
@@ -93,7 +130,41 @@ export function CoursesView() {
       onError: (err) => toast.error(apiErrorMessage(err)),
     });
   }
+  function editCourse(e: FormEvent) {
+    e.preventDefault();
 
+    if (!editingCourse) return;
+
+    const result = CourseInputSchema.safeParse(editForm);
+
+    if (!result.success) {
+      const errors: Partial<Record<keyof CourseInput, string>> = {};
+
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof CourseInput;
+        errors[key] = issue.message;
+      }
+
+      setEditFieldErrors(errors);
+      return;
+    }
+
+    setEditFieldErrors({});
+
+    updateCourse.mutate(
+      {
+        courseCode: editingCourse.code,
+        input: result.data,
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Updated ${result.data.code}.`);
+          closeEditCourseModal();
+        },
+        onError: (err) => toast.error(apiErrorMessage(err)),
+      }
+    );
+  }
   return (
     <div>
       <PageHeader
@@ -195,40 +266,46 @@ export function CoursesView() {
           </TableHeader>
           <TableBody>
             {courses.map((course) =>
-              editingCode === course.code ? (
-                <EditRow key={course.code} course={course} onDone={() => setEditingCode(null)} />
-              ) : (
-                <TableRow key={course.code}>
-                  <TableCell>
-                    <Badge variant="outline" className="font-mono">
-                      {course.code}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">{course.title}</TableCell>
-                  <TableCell>{course.credits}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingCode(course.code)}
-                      >
-                        <Pencil />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(course)}
-                        disabled={deleteCourse.isPending}
-                      >
-                        <Trash2 />
-                        Remove
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ),
+            (
+              <TableRow key={course.code}>
+                <TableCell>
+                  <Badge variant="outline" className="font-mono">
+                    {course.code}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-medium">{course.title}</TableCell>
+                <TableCell>{course.credits}</TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setRosterCourse(course)}
+                    >
+                      <Users />
+                      Roster
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditCourseModal(course)}
+                    >
+                      <Pencil />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(course)}
+                      disabled={deleteCourse.isPending}
+                    >
+                      <Trash2 />
+                      Remove
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )
             )}
           </TableBody>
         </Table>
@@ -274,80 +351,62 @@ export function CoursesView() {
           </div>
         </form>
       </Modal>
+      <Modal
+        isOpen={!!editingCourse}
+        onClose={closeEditCourseModal}
+        title="Edit Course"
+      >
+        <form className="space-y-4" onSubmit={editCourse}>
+          <Input
+            label="Course Code"
+            value={editForm.code}
+            disabled
+          />
+
+          <Input
+            label="Course Title"
+            value={editForm.title}
+            onChange={(e) =>
+              handleEditFormChange("title", e.target.value)
+            }
+            error={editFieldErrors.title}
+            required
+          />
+
+          <Input
+            label="Credits"
+            inputMode="numeric"
+            value={editForm.credits}
+            onChange={(e) =>
+              handleEditFormChange("credits", e.target.value)
+            }
+            error={editFieldErrors.credits}
+            required
+          />
+
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeEditCourseModal}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              disabled={updateCourse.isPending}
+            >
+              {updateCourse.isPending
+                ? "Saving..."
+                : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+      <RosterModal course={rosterCourse} onClose={() => setRosterCourse(null)} />
     </div>
   );
 }
 
-function EditRow({
-  course,
-  onDone,
-}: {
-  course: Course;
-  onDone: () => void;
-}) {
-  const [title, setTitle] = useState(course.title);
-  const [credits, setCredits] = useState(String(course.credits));
-  const [code, setCode] = useState(course.code);
-  const updateCourse = useUpdateCourses();
-
-  function handleSave(e: FormEvent) {
-    e.preventDefault();
-    const creditsNum = Number(credits);
-    if (!title.trim() || !code.trim() || Number.isNaN(creditsNum) || creditsNum < 1 || creditsNum > 4) {
-      toast.error("Please enter a valid title, code and credits (1 - 4).");
-      return;
-    }
-    updateCourse.mutate(
-      { courseCode: course.code, input: { title, credits: creditsNum, code } },
-      {
-        onSuccess: () => {
-          toast.success(`Updated ${code}'s record.`);
-          onDone();
-        },
-        onError: (err) => toast.error(apiErrorMessage(err)),
-      },
-    );
-  }
-
-  return (
-    <TableRow>
-      <TableCell colSpan={3}>
-        <form className="flex flex-wrap items-center gap-2" onSubmit={handleSave}>
-          <Input
-            className="max-w-[120px]"
-            name="code"
-            inputSize="sm"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            aria-label="Code"
-          />
-          <Input
-            className="max-w-[200px]"
-            name="title"
-            inputSize="sm"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            aria-label="Title"
-          />
-          <Input
-            className="max-w-[90px]"
-            name="credits"
-            inputSize="sm"
-            value={credits}
-            onChange={(e) => setCredits(e.target.value)}
-            aria-label="Credits"
-          />
-          <Button type="submit" size="sm" disabled={updateCourse.isPending}>
-            <Check />
-            Save
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={onDone}>
-            <X />
-            Cancel
-          </Button>
-        </form>
-      </TableCell>
-      <TableCell />
-    </TableRow>
-  );
-}

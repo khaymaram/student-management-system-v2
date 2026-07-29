@@ -1,7 +1,6 @@
 // StudentsView.tsx renders the roster UI and handles filtering, editing, and deletion.
 import { useState, type FormEvent } from "react";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
-import { toast } from "sonner";
+import { Plus, Pencil, Trash2, BookOpen } from "lucide-react";import { toast } from "sonner";
 import { useDeleteStudent, useStudents, useUpdateStudent, useCreateStudent, type StudentFilter } from "../hooks/useStudents";
 import { apiErrorMessage } from "../lib/axios";
 import { StudentInputSchema, type Student, type StudentInput } from "../types";
@@ -11,6 +10,7 @@ import { Button } from "./ui/Button";
 import Input from "./ui/Input";
 import Modal from "./ui/Modal";
 import { Badge } from "./ui/Badge";
+import { EnrollmentModal } from "./EnrollmentModal";
 import {
   Select,
   SelectContent,
@@ -29,10 +29,18 @@ export function StudentsView() {
   const [gradeInput, setGradeInput] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [nameInput, setNameInput] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addForm, setAddForm] = useState(emptyForm);
-  const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof StudentInput, string>>>({});
+  const [enrollmentStudent, setEnrollmentStudent] = useState<Student | null>(null);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+
+const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+const [addForm, setAddForm] = useState(emptyForm);
+const [addFieldErrors, setAddFieldErrors] =
+  useState<Partial<Record<keyof StudentInput, string>>>({});
+
+const [editForm, setEditForm] = useState(emptyForm);
+const [editFieldErrors, setEditFieldErrors] =
+  useState<Partial<Record<keyof StudentInput, string>>>({});
 
   const filter: StudentFilter =
     mode === "grade" && gradeInput
@@ -46,8 +54,9 @@ export function StudentsView() {
             : { type: "all" };
 
   const { data: students, isLoading, isError, error } = useStudents(filter);
-  const deleteStudent = useDeleteStudent();
-  const createStudent = useCreateStudent();
+const deleteStudent = useDeleteStudent();
+const createStudent = useCreateStudent();
+const updateStudent = useUpdateStudent();
 
   function handleDelete(student: Student) {
     if (!window.confirm(`Remove ${student.name} (ID ${student.studentId}) from the roster`)) return;
@@ -60,7 +69,34 @@ export function StudentsView() {
   function handleAddFormChange(field: keyof typeof addForm, value: string) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   }
+function handleEditFormChange(
+  field: keyof typeof editForm,
+  value: string
+) {
+  setEditForm((prev) => ({
+    ...prev,
+    [field]: value,
+  }));
+}
 
+function openEditStudentModal(student: Student) {
+  setEditingStudent(student);
+
+  setEditForm({
+    studentId: String(student.studentId),
+    name: student.name,
+    grade: String(student.grade),
+    gpa: String(student.gpa),
+  });
+
+  setEditFieldErrors({});
+}
+
+function closeEditStudentModal() {
+  setEditingStudent(null);
+  setEditForm({ ...emptyForm });
+  setEditFieldErrors({});
+}
   function openAddStudentModal() {
     setAddForm({ ...emptyForm });
     setAddFieldErrors({});
@@ -97,6 +133,42 @@ export function StudentsView() {
       onError: (err) => toast.error(apiErrorMessage(err)),
     });
   }
+
+  function editStudent(e: FormEvent) {
+  e.preventDefault();
+
+  if (!editingStudent) return;
+
+  const result = StudentInputSchema.safeParse(editForm);
+
+  if (!result.success) {
+    const errors: Partial<Record<keyof StudentInput, string>> = {};
+
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof StudentInput;
+      errors[key] = issue.message;
+    }
+
+    setEditFieldErrors(errors);
+    return;
+  }
+
+  setEditFieldErrors({});
+
+  updateStudent.mutate(
+    {
+      studentId: editingStudent.studentId,
+      input: result.data,
+    },
+    {
+      onSuccess: () => {
+        toast.success(`Updated ${result.data.name}.`);
+        closeEditStudentModal();
+      },
+      onError: (err) => toast.error(apiErrorMessage(err)),
+    }
+  );
+}
 
   return (
     <div>
@@ -201,9 +273,7 @@ export function StudentsView() {
           </TableHeader>
           <TableBody>
             {students.map((student) =>
-              editingId === student.studentId ? (
-                <EditRow key={student.studentId} student={student} onDone={() => setEditingId(null)} />
-              ) : (
+              (
                 <TableRow key={student.studentId}>
                   <TableCell>
                     <Badge variant="outline" className="font-mono">
@@ -222,7 +292,15 @@ export function StudentsView() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setEditingId(student.studentId)}
+                        onClick={() => setEnrollmentStudent(student)}
+                      >
+                        <BookOpen />
+                        Courses
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditStudentModal(student)}
                       >
                         <Pencil />
                         Edit
@@ -239,7 +317,7 @@ export function StudentsView() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ),
+              )
             )}
           </TableBody>
         </Table>
@@ -300,86 +378,74 @@ export function StudentsView() {
           </div>
         </form>
       </Modal>
+
+      <Modal
+  isOpen={!!editingStudent}
+  onClose={closeEditStudentModal}
+  title="Edit Student"
+>
+  <form className="space-y-4" onSubmit={editStudent}>
+    <Input
+      label="Student ID"
+      value={editForm.studentId}
+      disabled
+    />
+
+    <Input
+      label="Full Name"
+      value={editForm.name}
+      onChange={(e) =>
+        handleEditFormChange("name", e.target.value)
+      }
+      error={editFieldErrors.name}
+      required
+    />
+
+    <Input
+      label="Grade"
+      inputMode="numeric"
+      value={editForm.grade}
+      onChange={(e) =>
+        handleEditFormChange("grade", e.target.value)
+      }
+      error={editFieldErrors.grade}
+      required
+    />
+
+    <Input
+      label="GPA"
+      inputMode="decimal"
+      value={editForm.gpa}
+      onChange={(e) =>
+        handleEditFormChange("gpa", e.target.value)
+      }
+      error={editFieldErrors.gpa}
+      required
+    />
+
+    <div className="flex justify-end gap-2 pt-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={closeEditStudentModal}
+      >
+        Cancel
+      </Button>
+
+      <Button
+        type="submit"
+        disabled={updateStudent.isPending}
+      >
+        {updateStudent.isPending
+          ? "Saving..."
+          : "Save Changes"}
+      </Button>
+    </div>
+  </form>
+</Modal>
+
+      <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
     </div>
   );
 }
 
-function EditRow({
-  student,
-  onDone,
-}: {
-  student: Student;
-  onDone: () => void;
-}) {
-  const [name, setName] = useState(student.name);
-  const [grade, setGrade] = useState(String(student.grade));
-  const [gpa, setGpa] = useState(String(student.gpa));
-  const updateStudent = useUpdateStudent();
-
-  function handleSave(e: FormEvent) {
-    e.preventDefault();
-    const gpaNum = Number(gpa);
-    const gradeNum = Number(grade);
-    if (!name.trim() || Number.isNaN(gpaNum) || Number.isNaN(gradeNum) || gpaNum < 0 || gpaNum > 4) {
-      toast.error("Please enter a valid name, grade, and GPA (0.0–4.0).");
-      return;
-    }
-    updateStudent.mutate(
-      { studentId: student.studentId, input: { studentId: student.studentId, name, grade: gradeNum, gpa: gpaNum } },
-      {
-        onSuccess: () => {
-          toast.success(`Updated ${name}'s record.`);
-          onDone();
-        },
-        onError: (err) => toast.error(apiErrorMessage(err)),
-      },
-    );
-  }
-
-  return (
-    <TableRow>
-      <TableCell>
-        <Badge variant="outline" className="font-mono">
-          #{student.studentId}
-        </Badge>
-      </TableCell>
-      <TableCell colSpan={3}>
-        <form className="flex flex-wrap items-center gap-2" onSubmit={handleSave}>
-          <Input
-            className="max-w-[160px]"
-            name="name"
-            inputSize="sm"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            aria-label="Name"
-          />
-          <Input
-            className="max-w-[90px]"
-            name="grade"
-            inputSize="sm"
-            value={grade}
-            onChange={(e) => setGrade(e.target.value)}
-            aria-label="Grade"
-          />
-          <Input
-            className="max-w-[90px]"
-            name="gpa"
-            inputSize="sm"
-            value={gpa}
-            onChange={(e) => setGpa(e.target.value)}
-            aria-label="GPA"
-          />
-          <Button type="submit" size="sm" disabled={updateStudent.isPending}>
-            <Check />
-            Save
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={onDone}>
-            <X />
-            Cancel
-          </Button>
-        </form>
-      </TableCell>
-      <TableCell />
-    </TableRow>
-  );
-}

@@ -25,7 +25,7 @@ import {
 } from "../hooks/useEnrollments";
 import { apiErrorMessage } from "../lib/axios";
 import type { Student } from "../types";
-
+const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 interface EnrollmentModalProps {
   student: Student | null;
   onClose: () => void;
@@ -164,14 +164,17 @@ function EnrollmentRow({
 }) {
   const [gradeInput, setGradeInput] = useState(grade ?? "");
   const updateGrade = useUpdateEnrollmentGrade();
-
   function handleSaveGrade() {
     updateGrade.mutate(
-      { studentId, courseCode, grade: gradeInput },
+      {
+        studentId,
+        courseCode,
+        grade: gradeInput,
+      },
       {
         onSuccess: () => toast.success(`Recorded grade for ${courseCode}.`),
         onError: (err) => toast.error(apiErrorMessage(err)),
-      },
+      }
     );
   }
 
@@ -186,14 +189,24 @@ function EnrollmentRow({
       <TableCell>{credits ?? "—"}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <Input
-            className="max-w-[70px]"
-            inputSize="sm"
-            value={gradeInput}
-            placeholder="—"
-            onChange={(e) => setGradeInput(e.target.value)}
-            aria-label={`Grade for ${courseCode}`}
-          />
+          <Select
+            value={gradeInput || "NONE"}
+            onValueChange={(value) => setGradeInput(value === "NONE" ? "" : value)}
+          >
+            <SelectTrigger className="w-24">
+              <SelectValue placeholder="-" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="NONE">-</SelectItem>
+
+              {GRADE_OPTIONS.map((grade) => (
+                <SelectItem key={grade} value={grade}>
+                  {grade}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             size="sm"

@@ -38,17 +38,27 @@ func main() {
 
 	courseRepository :=
 		repositories.NewCourseRepository(db)
-	
-	courseService := 
+
+	courseService :=
 		services.NewCourseService(courseRepository)
-	
+
 	courseHandler :=
 		handlers.NewCourseHandler(courseService)
+
+	enrollmentRepository :=
+		repositories.NewEnrollmentRepository(db)
+
+	enrollmentService :=
+		services.NewEnrollmentService(enrollmentRepository, studentRepository, courseRepository)
+
+	enrollmentHandler :=
+		handlers.NewEnrollmentHandler(enrollmentService)
 
 	router :=
 		routes.Setup(
 			studentHandler,
 			courseHandler,
+			enrollmentHandler,
 		)
 
 	err = router.Run(

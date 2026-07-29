@@ -41,3 +41,19 @@ export const CourseInputSchema = z.object({
 })
 export type CourseInput = z.infer<typeof CourseInputSchema>;
 
+// EnrollmentSchema describes a student's registration in a course. The backend
+// preloads the related Student or Course record depending on which endpoint
+// was called (a student's enrollments include `course`, a course's roster
+// includes `student`), so both are optional here.
+export const EnrollmentSchema = z.object({
+    id: z.number().optional(),
+    studentId: z.number(),
+    courseCode: z.string(),
+    grade: z.string().optional(),
+    enrolledAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+    student: StudentSchema.optional(),
+    course: CourseSchema.optional(),
+});
+export type Enrollment = z.infer<typeof EnrollmentSchema>;
+

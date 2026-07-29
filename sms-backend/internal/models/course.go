@@ -4,7 +4,7 @@ import "time"
 
 type Course struct {
 	// ID uint `gorm:"column:id;primaryKey" json:"courseId"`
-	Code string `gorm:"column:code;primaryKey" json:"code"`
+	Code string `gorm:"column:code;primaryKey;type:nvarchar(256)" json:"code"`
 
 	Title string `gorm:"column:title" json:"title"`
 
@@ -15,3 +15,6 @@ type Course struct {
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
 }
 
+func (Course) TableName() string {
+	return "dbo.courses"
+}

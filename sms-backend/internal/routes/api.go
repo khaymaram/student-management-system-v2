@@ -14,6 +14,7 @@ import (
 func Setup(
 	studentHandler *handlers.StudentHandler,
 	courseHandler *handlers.CourseHandler,
+	enrollmentHandler *handlers.EnrollmentHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -79,6 +80,27 @@ func Setup(
 				studentHandler.GetHonors,
 			)
 
+			// Enrollment routes — a student's list of courses.
+			students.GET(
+				"/:studentId/enrollments",
+				enrollmentHandler.GetByStudent,
+			)
+
+			students.POST(
+				"/:studentId/enrollments",
+				enrollmentHandler.Enroll,
+			)
+
+			students.PUT(
+				"/:studentId/enrollments/:courseCode",
+				enrollmentHandler.UpdateGrade,
+			)
+
+			students.DELETE(
+				"/:studentId/enrollments/:courseCode",
+				enrollmentHandler.Unenroll,
+			)
+
 		}
 
 		courses := api.Group("/courses")
@@ -119,9 +141,11 @@ func Setup(
 				courseHandler.Delete,
 			)
 
-
-
-			
+			// Roster route — students enrolled in this course.
+			courses.GET(
+				"/:code/roster",
+				enrollmentHandler.GetByCourse,
+			)
 
 		}
 

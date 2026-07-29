@@ -1,0 +1,217 @@
+// EnrollmentModal.tsx lets a user enroll a student in a course, remove an
+// existing enrollment, and record/edit the final grade for a course the
+// student has taken.
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Trash2, GraduationCap, Check } from "lucide-react";
+import Modal from "./ui/Modal";
+import { Button } from "./ui/Button";
+import { Badge } from "./ui/Badge";
+import Input from "./ui/Input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/Select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui/Table";
+import { useCourses } from "../hooks/useCourses";
+import {
+  useStudentEnrollments,
+  useEnrollStudent,
+  useUnenrollStudent,
+  useUpdateEnrollmentGrade,
+} from "../hooks/useEnrollments";
+import { apiErrorMessage } from "../lib/axios";
+import type { Student } from "../types";
+
+interface EnrollmentModalProps {
+  student: Student | null;
+  onClose: () => void;
+}
+
+export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+
+  const { data: enrollments, isLoading } = useStudentEnrollments(student?.studentId ?? null);
+  const { data: allCourses } = useCourses({ type: "all" });
+  const enrollMutation = useEnrollStudent();
+  const unenrollMutation = useUnenrollStudent();
+
+  const enrolledCodes = useMemo(
+    () => new Set((enrollments ?? []).map((e) => e.courseCode)),
+    [enrollments],
+  );
+
+  const availableCourses = (allCourses ?? []).filter((c) => !enrolledCodes.has(c.code));
+
+  if (!student) return null;
+
+  function handleEnroll() {
+    if (!student || !selectedCourse) return;
+    enrollMutation.mutate(
+      { studentId: student.studentId, courseCode: selectedCourse },
+      {
+        onSuccess: () => {
+          toast.success(`Enrolled ${student.name} in ${selectedCourse}.`);
+          setSelectedCourse("");
+        },
+        onError: (err) => toast.error(apiErrorMessage(err)),
+      },
+    );
+  }
+
+  function handleUnenroll(courseCode: string) {
+    if (!student) return;
+    if (!window.confirm(`Remove ${student.name} from ${courseCode}?`)) return;
+    unenrollMutation.mutate(
+      { studentId: student.studentId, courseCode },
+      {
+        onSuccess: () => toast.success(`Removed ${student.name} from ${courseCode}.`),
+        onError: (err) => toast.error(apiErrorMessage(err)),
+      },
+    );
+  }
+
+  return (
+    <Modal isOpen={!!student} onClose={onClose} title={`${student.name}'s Courses`}>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex-1 min-w-[180px]">
+            <label className="block text-sm font-medium text-foreground/80 mb-2">
+              Enroll in a course
+            </label>
+            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCourses.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    No available courses
+                  </div>
+                ) : (
+                  availableCourses.map((course) => (
+                    <SelectItem key={course.code} value={course.code}>
+                      {course.code} — {course.title}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleEnroll} disabled={!selectedCourse || enrollMutation.isPending}>
+            <GraduationCap />
+            Enroll
+          </Button>
+        </div>
+
+        {isLoading && <p className="text-sm text-muted-foreground">Loading courses…</p>}
+
+        {!isLoading && !enrollments?.length && (
+          <p className="text-sm text-muted-foreground">Not enrolled in any courses yet.</p>
+        )}
+
+        {!isLoading && !!enrollments?.length && (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Code</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Credits</TableHead>
+                <TableHead>Grade</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {enrollments.map((enrollment) => (
+                <EnrollmentRow
+                  key={enrollment.courseCode}
+                  studentId={student.studentId}
+                  courseCode={enrollment.courseCode}
+                  title={enrollment.course?.title}
+                  credits={enrollment.course?.credits}
+                  grade={enrollment.grade}
+                  onRemove={() => handleUnenroll(enrollment.courseCode)}
+                  removing={unenrollMutation.isPending}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function EnrollmentRow({
+  studentId,
+  courseCode,
+  title,
+  credits,
+  grade,
+  onRemove,
+  removing,
+}: {
+  studentId: number;
+  courseCode: string;
+  title?: string;
+  credits?: number;
+  grade?: string;
+  onRemove: () => void;
+  removing: boolean;
+}) {
+  const [gradeInput, setGradeInput] = useState(grade ?? "");
+  const updateGrade = useUpdateEnrollmentGrade();
+
+  function handleSaveGrade() {
+    updateGrade.mutate(
+      { studentId, courseCode, grade: gradeInput },
+      {
+        onSuccess: () => toast.success(`Recorded grade for ${courseCode}.`),
+        onError: (err) => toast.error(apiErrorMessage(err)),
+      },
+    );
+  }
+
+  return (
+    <TableRow>
+      <TableCell>
+        <Badge variant="outline" className="font-mono">
+          {courseCode}
+        </Badge>
+      </TableCell>
+      <TableCell>{title ?? "—"}</TableCell>
+      <TableCell>{credits ?? "—"}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Input
+            className="max-w-[70px]"
+            inputSize="sm"
+            value={gradeInput}
+            placeholder="—"
+            onChange={(e) => setGradeInput(e.target.value)}
+            aria-label={`Grade for ${courseCode}`}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveGrade}
+            disabled={updateGrade.isPending || gradeInput === (grade ?? "")}
+          >
+            <Check />
+          </Button>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex justify-end">
+          <Button variant="destructive" size="sm" onClick={onRemove} disabled={removing}>
+            <Trash2 />
+            Remove
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}

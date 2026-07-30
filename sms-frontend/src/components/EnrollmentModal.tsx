@@ -7,7 +7,6 @@ import { Trash2, GraduationCap, Check } from "lucide-react";
 import Modal from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { Badge } from "./ui/Badge";
-import Input from "./ui/Input";
 import {
   Select,
   SelectContent,

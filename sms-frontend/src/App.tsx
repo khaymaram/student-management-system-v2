@@ -3,7 +3,7 @@ import { Toaster } from 'sonner';
 import AppLayout from './components/layout/AppLayout';
 import { StudentsView } from './components/StudentsView';
 import { CoursesView } from './components/CoursesView';
-
+import CourseDetailsView from "./components/CourseDetailsView";
 function App() {
   return (
     <BrowserRouter>
@@ -12,6 +12,10 @@ function App() {
           <Route index element={<Navigate to="/roster" replace />} />
           <Route path="/roster" element={<StudentsView />} />
           <Route path="/courses" element={<CoursesView />} />
+          <Route
+            path="/courses/:courseCode"
+            element={<CourseDetailsView />}
+          />
         </Route>
       </Routes>
       <Toaster

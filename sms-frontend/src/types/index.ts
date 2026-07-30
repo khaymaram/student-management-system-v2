@@ -24,8 +24,8 @@ export const StudentInputSchema = z.object({
 export type StudentInput = z.infer<typeof StudentInputSchema>;
 
 export const CourseSchema = z.object({
-    id: z.number().optional(),
-    courseId: z.number(),
+    // id: z.number().optional(),
+    // courseId: z.number(),
     title: z.string(),
     code: z.string(),
     credits: z.number(),

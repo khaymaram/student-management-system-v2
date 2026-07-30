@@ -58,7 +58,13 @@ export function useCreateCourse() {
         },
     });
 }
-
+export function useCourse(code: string | null) {
+    return useQuery({
+        queryKey: ["course", code],
+        queryFn: () => get(`/courses/${code}`),
+        enabled: !!code,
+    });
+}
 export function useUpdateCourses() {
     const queryClient = useQueryClient();
     // Update an existing course and invalidate cached queries so the UI refreshes.

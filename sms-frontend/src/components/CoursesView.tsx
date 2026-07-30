@@ -10,7 +10,8 @@ import { Button } from "./ui/Button";
 import Input from "./ui/Input";
 import Modal from "./ui/Modal";
 import { Badge } from "./ui/Badge";
-import { RosterModal } from "./RosterModal";
+// import { RosterModal } from "./RosterModal";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -29,7 +30,7 @@ export function CoursesView() {
   const [titleInput, setTitleInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [rosterCourse, setRosterCourse] = useState<Course | null>(null);
+  // const [rosterCourse, setRosterCourse] = useState<Course | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
 
@@ -269,22 +270,30 @@ export function CoursesView() {
             (
               <TableRow key={course.code}>
                 <TableCell>
-                  <Badge variant="outline" className="font-mono">
-                    {course.code}
-                  </Badge>
+                  <Link
+                    to={`/courses/${course.code}`}
+                    className="inline-block"
+                  >
+                    <Badge
+                      variant="outline"
+                      className="font-mono cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      {course.code}
+                    </Badge>
+                  </Link>
                 </TableCell>
                 <TableCell className="font-medium">{course.title}</TableCell>
                 <TableCell>{course.credits}</TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-2">
-                    <Button
+                    {/* <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setRosterCourse(course)}
                     >
                       <Users />
                       Roster
-                    </Button>
+                    </Button> */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -405,7 +414,7 @@ export function CoursesView() {
           </div>
         </form>
       </Modal>
-      <RosterModal course={rosterCourse} onClose={() => setRosterCourse(null)} />
+      {/* <RosterModal course={rosterCourse} onClose={() => setRosterCourse(null)} /> */}
     </div>
   );
 }

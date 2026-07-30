@@ -1,6 +1,6 @@
 // types/index.ts defines the shared frontend type schemas for students.
 // StudentSchema describes the API shape and StudentInputSchema validates form data.
-import {z} from "zod";
+import {toUpperCase, z} from "zod";
 
 function capitalizeWords(str: string): string {
   return str.replace(/\b\w/g, char => char.toUpperCase());
@@ -39,9 +39,9 @@ export const CourseSchema = z.object({
 export type Course = z.infer<typeof CourseSchema>;
 
 export const CourseInputSchema = z.object({
-    title: z.string().min(1, "Course title is required"),
+    title: z.string().min(1, "Course title is required").transform(value => capitalizeWords(value.trim())),
     credits: z.coerce.number().int().min(1, "Credits must be at least 1").max(4, "Highest number of credits is 4"),
-    code: z.string().min(1, "Course code is required")
+    code: z.string().min(1, "Course code is required").toUpperCase().regex(/^[a-zA-Z]{4}\d{3}$/, "Codes must follow format of ABCD123")
 })
 export type CourseInput = z.infer<typeof CourseInputSchema>;
 

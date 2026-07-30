@@ -1,11 +1,25 @@
 // types/index.ts defines the shared frontend type schemas for students.
 // StudentSchema describes the API shape and StudentInputSchema validates form data.
-import {toUpperCase, z} from "zod";
+import { z } from "zod";
 
 function capitalizeWords(str: string): string {
-  return str.replace(/\b\w/g, char => char.toUpperCase());
+    return str.replace(/\b\w/g, char => char.toUpperCase());
 }
+export const ProfessorSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+});
 
+export type Professor = z.infer<typeof ProfessorSchema>;
+
+export const ProfessorInputSchema = z.object({
+    id: z.string().trim().toUpperCase().regex(/^P\d{4,}$/, "Professor IDs must follow the format P1234..."),
+    name: z.string().min(1, "Professor name is required").transform(value => capitalizeWords(value.trim())),
+});
+
+export type ProfessorInput = z.infer<typeof ProfessorInputSchema>;
 // StudentSchema describes the API response shape returned by the backend.
 export const StudentSchema = z.object({
     id: z.number().optional(),
@@ -28,22 +42,39 @@ export const StudentInputSchema = z.object({
 export type StudentInput = z.infer<typeof StudentInputSchema>;
 
 export const CourseSchema = z.object({
-    // id: z.number().optional(),
-    // courseId: z.number(),
     title: z.string(),
     code: z.string(),
     credits: z.number(),
+    professorId: z.string().optional(),
+    professor: ProfessorSchema.optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
 });
 export type Course = z.infer<typeof CourseSchema>;
 
 export const CourseInputSchema = z.object({
-    title: z.string().min(1, "Course title is required").transform(value => capitalizeWords(value.trim())),
-    credits: z.coerce.number().int().min(1, "Credits must be at least 1").max(4, "Highest number of credits is 4"),
-    code: z.string().min(1, "Course code is required").toUpperCase().regex(/^[a-zA-Z]{4}\d{3}$/, "Codes must follow format of ABCD123")
-})
+    title: z.string()
+        .min(1)
+        .transform(v => capitalizeWords(v.trim())),
+
+    code: z.string()
+        .trim()
+        .toUpperCase()
+        .regex(/^[A-Z]{4}\d{3}$/),
+
+    credits: z.coerce.number()
+        .int()
+        .min(1)
+        .max(4),
+
+    professor_id: z.string()
+        .trim()
+        .toUpperCase()
+        .regex(/^P\d{4,}$/),
+});
 export type CourseInput = z.infer<typeof CourseInputSchema>;
+
+
 
 // EnrollmentSchema describes a student's registration in a course. The backend
 // preloads the related Student or Course record depending on which endpoint

@@ -1,0 +1,86 @@
+import axios from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { api, get, post, put } from "../lib/axios"
+import type { Professor, ProfessorInput } from "../types";
+
+export type ProfessorFilter =
+    | { type: "all" }
+    | { type: "search"; id: string }
+    | { type: "name"; name: string};
+
+export function useProfessors(filter: ProfessorFilter = { type: "all"}){
+    // React Query fetches students from the backend and caches the result.
+    // The query key includes the current filter so different views can reuse
+    // their own cached data without interfering with each other.
+    return useQuery<Professor[]>({
+        queryKey: ["professors", filter],
+        queryFn: async () => {
+            switch (filter.type) {
+                case "search": {
+                    try {
+                        const professor = await get<Professor>(`/professors/${filter.id}`);
+                        return [professor];
+                    } catch (unknownError) {
+                        const error = unknownError as Error;
+                        if (axios.isAxiosError(error) && error.response?.status === 404) {
+                            return [];
+                        }
+                        throw error;
+                    }
+                }
+                case "name": {
+                    const query = encodeURIComponent(filter.name.trim());
+                    if (!query) {
+                        return [];
+                    }
+
+                    return await get<Professor[]>(`/professors/search?name=${query}`);
+                }
+                default:
+                    return await get<Professor[]>("/professors");
+            }
+        },
+    });
+}
+
+export function useCreateProfessor() {
+    const queryClient = useQueryClient();
+    // Send a POST request to create a student and refresh the student list on success.
+    // Invalidating the students query makes the roster refetch immediately after creation.
+    return useMutation({
+        mutationFn: async (input: ProfessorInput) => {
+            return await post<string>("/professors", input);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["professors"] });
+        },
+    });
+}
+
+export function useUpdateProfessor() {
+    const queryClient = useQueryClient();
+    // Update an existing student and invalidate cached queries so the UI refreshes.
+    // This keeps the roster view in sync with the backend after an edit.
+    return useMutation({
+        mutationFn: async ({ professorId, input }: { professorId: string; input: ProfessorInput}) => {
+            return await put<string>(`/professors/${professorId}`, input);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["professors"] });
+        },
+    });
+}
+
+export function useDeleteProfessor() {
+    const queryClient = useQueryClient();
+    // Delete a student by ID and then refetch the student list.
+    // The invalidation step ensures the roster immediately removes the deleted row.
+    return useMutation({
+        mutationFn: async (professorId: string) => {
+            await api.delete(`/professors/${professorId}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["professors"] });
+        },
+    });
+}

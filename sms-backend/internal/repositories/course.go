@@ -33,7 +33,7 @@ func (r *courseRepository) GetAll() ([]models.Course, error) {
 
 	var courses []models.Course
 
-	err := r.db.Find(&courses).Error
+	err := r.db.Preload("Professor").Find(&courses).Error
 
 	return courses, err
 }
@@ -42,7 +42,7 @@ func (r *courseRepository) GetByCode(code string) (*models.Course, error) {
 
 	var course models.Course
 
-	err := r.db.First(&course, "LOWER(code) = LOWER(?)", code).Error
+	err := r.db.Preload("Professor").First(&course, "LOWER(code) = LOWER(?)", code).Error
 
 	if err != nil {
 		return nil, err

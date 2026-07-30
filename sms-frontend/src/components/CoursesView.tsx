@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useProfessors } from "../hooks/useProfessors";
 import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../hooks/useCourses";
 import { apiErrorMessage } from "../lib/axios";
 import { CourseInputSchema, type Course, type CourseInput } from "../types";
@@ -24,7 +25,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 type FilterMode = "all" | "credits" | "title" | "code";
 
 export function CoursesView() {
-  const emptyForm = { title: "", credits: "", code: "" };
+  const emptyForm = { title: "", credits: "", code: "", professorId: "", };
   const [mode, setMode] = useState<FilterMode>("all");
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
@@ -33,6 +34,7 @@ export function CoursesView() {
   // const [rosterCourse, setRosterCourse] = useState<Course | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
+  const { data: professors } = useProfessors();
 
   const [addFieldErrors, setAddFieldErrors] =
     useState<Partial<Record<keyof CourseInput, string>>>({});
@@ -83,6 +85,7 @@ export function CoursesView() {
 
     setEditForm({
       title: course.title,
+      professorId: course.professorId ?? "",
       credits: String(course.credits),
       code: course.code,
     });
@@ -251,7 +254,7 @@ export function CoursesView() {
 
       {!isLoading && !isError && !courses?.length && (
         <Card padding="lg" className="text-center text-muted-foreground">
-          No courses match this view yet.
+          No courses in directory yet.
         </Card>
       )}
 
@@ -261,6 +264,7 @@ export function CoursesView() {
             <TableRow>
               <TableHead>Course Code</TableHead>
               <TableHead>Title</TableHead>
+              <TableHead>Professor</TableHead>
               <TableHead>Credits</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -283,6 +287,9 @@ export function CoursesView() {
                   </Link>
                 </TableCell>
                 <TableCell className="font-medium">{course.title}</TableCell>
+                <TableCell>
+                  {course.professor?.name ?? "NA"}
+                </TableCell>
                 <TableCell>{course.credits}</TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-2">
@@ -331,6 +338,33 @@ export function CoursesView() {
             required
           />
 
+          <Select
+            value={addForm.professorId}
+            onValueChange={(value) =>
+              handleAddFormChange("professorId", value)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Professor" />
+            </SelectTrigger>
+
+            <SelectContent>
+
+              {professors?.map((professor) => (
+
+                <SelectItem
+                  key={professor.id}
+                  value={professor.id}
+                >
+                  {professor.name}
+                </SelectItem>
+
+              ))}
+
+            </SelectContent>
+
+          </Select>
+
           <Input
             label="Credits"
             id="add-course-credits"
@@ -349,6 +383,8 @@ export function CoursesView() {
             error={addFieldErrors.code}
             required
           />
+
+
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={closeAddCourseModal}>
@@ -381,6 +417,33 @@ export function CoursesView() {
             error={editFieldErrors.title}
             required
           />
+
+          <Select
+            value={editForm.professorId}
+            onValueChange={(value) =>
+              handleEditFormChange("professorId", value)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Professor" />
+            </SelectTrigger>
+
+            <SelectContent>
+
+              {professors?.map((professor) => (
+
+                <SelectItem
+                  key={professor.id}
+                  value={professor.id}
+                >
+                  {professor.name}
+                </SelectItem>
+
+              ))}
+
+            </SelectContent>
+
+          </Select>
 
           <Input
             label="Credits"

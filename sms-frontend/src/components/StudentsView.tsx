@@ -1,6 +1,6 @@
 // StudentsView.tsx renders the roster UI and handles filtering, editing, and deletion.
 import { useState, type FormEvent } from "react";
-import { Plus, Pencil, Trash2, BookOpen } from "lucide-react";import { toast } from "sonner";
+import { Plus, Pencil, Trash2, BookOpen } from "lucide-react"; import { toast } from "sonner";
 import { useDeleteStudent, useStudents, useUpdateStudent, useCreateStudent, type StudentFilter } from "../hooks/useStudents";
 import { apiErrorMessage } from "../lib/axios";
 import { StudentInputSchema, type Student, type StudentInput } from "../types";
@@ -32,15 +32,15 @@ export function StudentsView() {
   const [enrollmentStudent, setEnrollmentStudent] = useState<Student | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
-const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-const [addForm, setAddForm] = useState(emptyForm);
-const [addFieldErrors, setAddFieldErrors] =
-  useState<Partial<Record<keyof StudentInput, string>>>({});
+  const [addForm, setAddForm] = useState(emptyForm);
+  const [addFieldErrors, setAddFieldErrors] =
+    useState<Partial<Record<keyof StudentInput, string>>>({});
 
-const [editForm, setEditForm] = useState(emptyForm);
-const [editFieldErrors, setEditFieldErrors] =
-  useState<Partial<Record<keyof StudentInput, string>>>({});
+  const [editForm, setEditForm] = useState(emptyForm);
+  const [editFieldErrors, setEditFieldErrors] =
+    useState<Partial<Record<keyof StudentInput, string>>>({});
 
   const filter: StudentFilter =
     mode === "grade" && gradeInput
@@ -54,9 +54,9 @@ const [editFieldErrors, setEditFieldErrors] =
             : { type: "all" };
 
   const { data: students, isLoading, isError, error } = useStudents(filter);
-const deleteStudent = useDeleteStudent();
-const createStudent = useCreateStudent();
-const updateStudent = useUpdateStudent();
+  const deleteStudent = useDeleteStudent();
+  const createStudent = useCreateStudent();
+  const updateStudent = useUpdateStudent();
 
   function handleDelete(student: Student) {
     if (!window.confirm(`Remove ${student.name} (ID ${student.studentId}) from the roster`)) return;
@@ -69,34 +69,34 @@ const updateStudent = useUpdateStudent();
   function handleAddFormChange(field: keyof typeof addForm, value: string) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   }
-function handleEditFormChange(
-  field: keyof typeof editForm,
-  value: string
-) {
-  setEditForm((prev) => ({
-    ...prev,
-    [field]: value,
-  }));
-}
+  function handleEditFormChange(
+    field: keyof typeof editForm,
+    value: string
+  ) {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
 
-function openEditStudentModal(student: Student) {
-  setEditingStudent(student);
+  function openEditStudentModal(student: Student) {
+    setEditingStudent(student);
 
-  setEditForm({
-    studentId: String(student.studentId),
-    name: student.name,
-    grade: String(student.grade),
-    gpa: String(student.gpa),
-  });
+    setEditForm({
+      studentId: String(student.studentId),
+      name: student.name,
+      grade: String(student.grade),
+      gpa: String(student.gpa),
+    });
 
-  setEditFieldErrors({});
-}
+    setEditFieldErrors({});
+  }
 
-function closeEditStudentModal() {
-  setEditingStudent(null);
-  setEditForm({ ...emptyForm });
-  setEditFieldErrors({});
-}
+  function closeEditStudentModal() {
+    setEditingStudent(null);
+    setEditForm({ ...emptyForm });
+    setEditFieldErrors({});
+  }
   function openAddStudentModal() {
     setAddForm({ ...emptyForm });
     setAddFieldErrors({});
@@ -135,40 +135,40 @@ function closeEditStudentModal() {
   }
 
   function editStudent(e: FormEvent) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!editingStudent) return;
+    if (!editingStudent) return;
 
-  const result = StudentInputSchema.safeParse(editForm);
+    const result = StudentInputSchema.safeParse(editForm);
 
-  if (!result.success) {
-    const errors: Partial<Record<keyof StudentInput, string>> = {};
+    if (!result.success) {
+      const errors: Partial<Record<keyof StudentInput, string>> = {};
 
-    for (const issue of result.error.issues) {
-      const key = issue.path[0] as keyof StudentInput;
-      errors[key] = issue.message;
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof StudentInput;
+        errors[key] = issue.message;
+      }
+
+      setEditFieldErrors(errors);
+      return;
     }
 
-    setEditFieldErrors(errors);
-    return;
-  }
+    setEditFieldErrors({});
 
-  setEditFieldErrors({});
-
-  updateStudent.mutate(
-    {
-      studentId: editingStudent.studentId,
-      input: result.data,
-    },
-    {
-      onSuccess: () => {
-        toast.success(`Updated ${result.data.name}.`);
-        closeEditStudentModal();
+    updateStudent.mutate(
+      {
+        studentId: editingStudent.studentId,
+        input: result.data,
       },
-      onError: (err) => toast.error(apiErrorMessage(err)),
-    }
-  );
-}
+      {
+        onSuccess: () => {
+          toast.success(`Updated ${result.data.name}.`);
+          closeEditStudentModal();
+        },
+        onError: (err) => toast.error(apiErrorMessage(err)),
+      }
+    );
+  }
 
   return (
     <div>
@@ -256,7 +256,7 @@ function closeEditStudentModal() {
 
       {!isLoading && !isError && !students?.length && (
         <Card padding="lg" className="text-center text-muted-foreground">
-          No students match this view yet.
+          No students enrolled yet.
         </Card>
       )}
 
@@ -273,51 +273,51 @@ function closeEditStudentModal() {
           </TableHeader>
           <TableBody>
             {students.map((student) =>
-              (
-                <TableRow key={student.studentId}>
-                  <TableCell>
-                    <Badge variant="outline" className="font-mono">
-                      #{student.studentId}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">{student.name}</TableCell>
-                  <TableCell>{student.grade}</TableCell>
-                  <TableCell>
-                    <span className={student.gpa >= 3.5 ? "text-success font-semibold" : undefined}>
-                      {student.gpa.toFixed(2)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEnrollmentStudent(student)}
-                      >
-                        <BookOpen />
-                        Courses
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditStudentModal(student)}
-                      >
-                        <Pencil />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(student)}
-                        disabled={deleteStudent.isPending}
-                      >
-                        <Trash2 />
-                        Remove
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
+            (
+              <TableRow key={student.studentId}>
+                <TableCell>
+                  <Badge variant="outline" className="font-mono">
+                    #{student.studentId}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-medium">{student.name}</TableCell>
+                <TableCell>{student.grade}</TableCell>
+                <TableCell>
+                  <span className={student.gpa >= 3.5 ? "text-success font-semibold" : undefined}>
+                    {student.gpa.toFixed(2)}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEnrollmentStudent(student)}
+                    >
+                      <BookOpen />
+                      Courses
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditStudentModal(student)}
+                    >
+                      <Pencil />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(student)}
+                      disabled={deleteStudent.isPending}
+                    >
+                      <Trash2 />
+                      Remove
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )
             )}
           </TableBody>
         </Table>
@@ -380,69 +380,69 @@ function closeEditStudentModal() {
       </Modal>
 
       <Modal
-  isOpen={!!editingStudent}
-  onClose={closeEditStudentModal}
-  title="Edit Student"
->
-  <form className="space-y-4" onSubmit={editStudent}>
-    <Input
-      label="Student ID"
-      value={editForm.studentId}
-      disabled
-    />
-
-    <Input
-      label="Full Name"
-      value={editForm.name}
-      onChange={(e) =>
-        handleEditFormChange("name", e.target.value)
-      }
-      error={editFieldErrors.name}
-      required
-    />
-
-    <Input
-      label="Grade"
-      inputMode="numeric"
-      value={editForm.grade}
-      onChange={(e) =>
-        handleEditFormChange("grade", e.target.value)
-      }
-      error={editFieldErrors.grade}
-      required
-    />
-
-    <Input
-      label="GPA"
-      inputMode="decimal"
-      value={editForm.gpa}
-      onChange={(e) =>
-        handleEditFormChange("gpa", e.target.value)
-      }
-      error={editFieldErrors.gpa}
-      required
-    />
-
-    <div className="flex justify-end gap-2 pt-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={closeEditStudentModal}
+        isOpen={!!editingStudent}
+        onClose={closeEditStudentModal}
+        title="Edit Student"
       >
-        Cancel
-      </Button>
+        <form className="space-y-4" onSubmit={editStudent}>
+          <Input
+            label="Student ID"
+            value={editForm.studentId}
+            disabled
+          />
 
-      <Button
-        type="submit"
-        disabled={updateStudent.isPending}
-      >
-        {updateStudent.isPending
-          ? "Saving..."
-          : "Save Changes"}
-      </Button>
-    </div>
-  </form>
-</Modal>
+          <Input
+            label="Full Name"
+            value={editForm.name}
+            onChange={(e) =>
+              handleEditFormChange("name", e.target.value)
+            }
+            error={editFieldErrors.name}
+            required
+          />
+
+          <Input
+            label="Grade"
+            inputMode="numeric"
+            value={editForm.grade}
+            onChange={(e) =>
+              handleEditFormChange("grade", e.target.value)
+            }
+            error={editFieldErrors.grade}
+            required
+          />
+
+          <Input
+            label="GPA"
+            inputMode="decimal"
+            value={editForm.gpa}
+            onChange={(e) =>
+              handleEditFormChange("gpa", e.target.value)
+            }
+            error={editFieldErrors.gpa}
+            required
+          />
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeEditStudentModal}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              disabled={updateStudent.isPending}
+            >
+              {updateStudent.isPending
+                ? "Saving..."
+                : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
     </div>

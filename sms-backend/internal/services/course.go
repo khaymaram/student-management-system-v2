@@ -23,7 +23,6 @@ type CourseService interface {
 	Search(title string) ([]models.Course, error)
 
 	FilterByCredits(credits int) ([]models.Course, error)
-
 }
 
 type courseService struct {
@@ -64,10 +63,10 @@ func (c *courseService) Create(req dto.CreateCourseRequest) error {
 	}
 
 	course := models.Course{
-		// ID:    uint(req.CourseID),
-		Title:  req.Title,
-		Code: req.Code,
-		Credits:   req.Credits,
+		Title:       req.Title,
+		Code:        req.Code,
+		Credits:     req.Credits,
+		ProfessorID: req.ProfessorID,
 	}
 
 	return c.repository.Create(&course)
@@ -79,30 +78,17 @@ func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 		return err
 	}
 
-	// var course *models.Course
-	// for i := range courses {
-	// 	if int(courses[i].ID) == id {
-	// 		course = &courses[i]
-	// 		break
-	// 	}
-	// }
-
-	// if course == nil {
-	// 	return gorm.ErrRecordNotFound
-	// }
-
 	if req.Title != "" {
 		course.Title = req.Title
 	}
-
-	// if req.Code != "" {
-	// 	course.Code = req.Code
-	// }
 
 	if req.Credits != 0 {
 		course.Credits = req.Credits
 	}
 
+	if req.ProfessorID != "" {
+		course.ProfessorID = req.ProfessorID
+	}
 	return c.repository.Update(course)
 }
 
@@ -117,4 +103,3 @@ func (c *courseService) Search(title string) ([]models.Course, error) {
 func (c *courseService) FilterByCredits(credits int) ([]models.Course, error) {
 	return c.repository.FilterByCredits(credits)
 }
-

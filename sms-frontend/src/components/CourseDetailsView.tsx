@@ -161,8 +161,10 @@ export default function CourseDetailsView() {
                                 Professor
                             </p>
 
-                            <p className="mt-1 text-3xl font-bold text-muted-foreground">
-                                TBD
+                            <p className={course?.professor?.name === null || course?.professor?.name === undefined ? "mt-1 text-3xl font-bold text-muted-foreground" : "mt-1 text-3xl font-bold"}>
+
+                                {course?.professor?.name ?? "NA"}
+
                             </p>
                         </div>
 

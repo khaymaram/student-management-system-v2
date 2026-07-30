@@ -4,15 +4,17 @@ package dto
 
 // CreateCourseRequest is the JSON payload expected from the frontend when creating a course.
 type CreateCourseRequest struct {
-	Code     string `json:"code" binding:"required"`
+	Code string `json:"code" binding:"required"`
 	// CourseID int    `json:"courseId" binding:"required"`
-	Title    string `json:"title" binding:"required"`
-	Credits  int    `json:"credits" binding:"required"`
+	Title       string  `json:"title" binding:"required"`
+	Credits     int     `json:"credits" binding:"required"`
+	ProfessorID string `json:"professorId"`
 }
 
 // UpdateCourseRequest allows partial updates for course fields.
 type UpdateCourseRequest struct {
-	Title    string `json:"title" `
-	Code     string `json:"code" `
-	Credits  int    `json:"credits" `
+	Title       string  `json:"title" `
+	Code        string  `json:"code" `
+	Credits     int     `json:"credits" `
+	ProfessorID string `json:"professorId"`
 }

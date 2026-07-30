@@ -15,6 +15,7 @@ func Setup(
 	studentHandler *handlers.StudentHandler,
 	courseHandler *handlers.CourseHandler,
 	enrollmentHandler *handlers.EnrollmentHandler,
+	professorHandler *handlers.ProfessorHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -125,7 +126,7 @@ func Setup(
 				"/credits/:credits",
 				courseHandler.FilterByCredits,
 			)
-			
+
 			courses.GET(
 				"/:code",
 				courseHandler.GetByCode,
@@ -145,6 +146,40 @@ func Setup(
 			courses.GET(
 				"/:code/roster",
 				enrollmentHandler.GetByCourse,
+			)
+
+		}
+		professors := api.Group("/professors")
+		{
+
+			professors.GET(
+				"",
+				professorHandler.GetAll,
+			)
+
+			professors.POST(
+				"",
+				professorHandler.Create,
+			)
+
+			professors.GET(
+				"/search",
+				professorHandler.Search,
+			)
+
+			professors.GET(
+				"/:id",
+				professorHandler.GetByID,
+			)
+
+			professors.PUT(
+				"/:id",
+				professorHandler.Update,
+			)
+
+			professors.DELETE(
+				"/:id",
+				professorHandler.Delete,
 			)
 
 		}

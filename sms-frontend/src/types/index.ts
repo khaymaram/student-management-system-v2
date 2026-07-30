@@ -2,6 +2,10 @@
 // StudentSchema describes the API shape and StudentInputSchema validates form data.
 import {z} from "zod";
 
+function capitalizeWords(str: string): string {
+  return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
 // StudentSchema describes the API response shape returned by the backend.
 export const StudentSchema = z.object({
     id: z.number().optional(),
@@ -17,9 +21,9 @@ export type Student = z.infer<typeof StudentSchema>;
 // StudentInputSchema validates the form data before it is sent to the API.
 export const StudentInputSchema = z.object({
     studentId: z.coerce.number().int().positive("Student ID must be a positive number"),
-    name: z.string().min(1, "Name is required"),
-    grade: z.coerce.number().int().min(0, "Grade must be a non-negative number"),
-    gpa: z.coerce.number().min(0, "GPA must be between 0.0 and 4.0")
+    name: z.string().min(1, "Name is required").transform(value => capitalizeWords(value.trim())),
+    grade: z.coerce.number().int().min(1, "Lowest grade level is 1").max(4, "Highest grade level is 4"),
+    gpa: z.coerce.number().min(0, "GPA must be between 0.0 and 4.0").max(4, "GPA must be between 0.0 and 4.0")
 });
 export type StudentInput = z.infer<typeof StudentInputSchema>;
 
@@ -36,7 +40,7 @@ export type Course = z.infer<typeof CourseSchema>;
 
 export const CourseInputSchema = z.object({
     title: z.string().min(1, "Course title is required"),
-    credits: z.coerce.number().int().min(0, "Credits must be a non-negative number"),
+    credits: z.coerce.number().int().min(1, "Credits must be at least 1").max(4, "Highest number of credits is 4"),
     code: z.string().min(1, "Course code is required")
 })
 export type CourseInput = z.infer<typeof CourseInputSchema>;

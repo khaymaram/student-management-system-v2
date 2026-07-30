@@ -171,7 +171,7 @@ export default function CourseDetailsView() {
                                 Average Grade
                             </p>
 
-                            <p className="mt-1 text-3xl font-bold text-muted-foreground">
+                            <p className={averageGrade === null || averageGrade === undefined ? "mt-1 text-3xl font-bold text-muted-foreground" : "mt-1 text-3xl font-bold"}>
                                 {averageGrade ?? "—"}
                             </p>
                         </div>

@@ -67,7 +67,7 @@ export const CourseInputSchema = z.object({
         .min(1)
         .max(4),
 
-    professor_id: z.string()
+    professorId: z.string()
         .trim()
         .toUpperCase()
         .regex(/^P\d{4,}$/),

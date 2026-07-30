@@ -257,6 +257,8 @@ export function ProfessorsView() {
                                         <Button
                                             variant="outline"
                                             size="sm"
+                                            // need to implement smth similar to courses details but instead for 
+                                            // professor details which shows 
                                             onClick={() => setTeachingProfessor(professor)}
                                         >
                                             <BookOpen />

@@ -13,14 +13,8 @@ function App() {
           <Route index element={<Navigate to="/roster" replace />} />
           <Route path="/roster" element={<StudentsView />} />
           <Route path="/courses" element={<CoursesView />} />
-          <Route
-            path="/courses/:courseCode"
-            element={<CourseDetailsView />}
-          />
-          <Route
-            path="/professors"
-            element={<ProfessorsView />}
-          />
+          <Route path="/courses/:courseCode" element={<CourseDetailsView />}/>
+          <Route path="/professors" element={<ProfessorsView />}/>
         </Route>
       </Routes>
       <Toaster

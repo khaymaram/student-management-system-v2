@@ -27,12 +27,14 @@ type CourseService interface {
 
 type courseService struct {
 	repository repositories.CourseRepository
+	enrollmentRepository repositories.EnrollmentRepository
 }
 
-func NewCourseService(repo repositories.CourseRepository) CourseService {
+func NewCourseService(repo repositories.CourseRepository, eRepo repositories.EnrollmentRepository) CourseService {
 
 	return &courseService{
 		repository: repo,
+		enrollmentRepository: eRepo,
 	}
 }
 
@@ -93,6 +95,12 @@ func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 }
 
 func (c *courseService) Delete(code string) error {
+	if _, err := c.repository.GetByCode(code); err != nil {
+		return err
+	}
+	if err := c.enrollmentRepository.DeleteByCourse(code); err != nil {
+		return err
+	}
 	return c.repository.Delete(code)
 }
 
@@ -103,3 +111,5 @@ func (c *courseService) Search(title string) ([]models.Course, error) {
 func (c *courseService) FilterByCredits(credits int) ([]models.Course, error) {
 	return c.repository.FilterByCredits(credits)
 }
+
+

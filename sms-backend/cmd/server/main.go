@@ -38,15 +38,15 @@ func main() {
 
 	courseRepository :=
 		repositories.NewCourseRepository(db)
-
+	enrollmentRepository :=
+		repositories.NewEnrollmentRepository(db)
 	courseService :=
-		services.NewCourseService(courseRepository)
+		services.NewCourseService(courseRepository, enrollmentRepository)
 
 	courseHandler :=
 		handlers.NewCourseHandler(courseService)
 
-	enrollmentRepository :=
-		repositories.NewEnrollmentRepository(db)
+
 
 	enrollmentService :=
 		services.NewEnrollmentService(enrollmentRepository, studentRepository, courseRepository)

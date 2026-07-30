@@ -19,6 +19,8 @@ type EnrollmentRepository interface {
 
 	GetByStudent(studentId int) ([]models.Enrollment, error)
 	GetByCourse(courseCode string) ([]models.Enrollment, error)
+
+	DeleteByCourse(courseCode string) (error)
 }
 
 type enrollmentRepository struct {
@@ -99,4 +101,9 @@ func (r *enrollmentRepository) GetByCourse(courseCode string) ([]models.Enrollme
 		Find(&enrollments).Error
 
 	return enrollments, err
+}
+
+func (r *enrollmentRepository) DeleteByCourse(courseCode string) error {
+	return r.db.Where("LOWER(course_code) = LOWER(?)", courseCode).
+	Delete(&models.Enrollment{}).Error
 }

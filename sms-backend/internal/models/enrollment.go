@@ -23,7 +23,7 @@ type Enrollment struct {
 	// Student and Course are populated via Preload so API responses can
 	// include the related record without a second round-trip from the frontend.
 	Student *Student `gorm:"foreignKey:StudentID;references:ID" json:"student,omitempty"`
-	Course  *Course  `gorm:"foreignKey:CourseCode;references:Code" json:"course,omitempty"`
+	Course  *Course  `gorm:"foreignKey:CourseCode;references:Code;constraint:OnDelete:CASCADE" json:"course,omitempty"`
 }
 
 func (Enrollment) TableName() string {

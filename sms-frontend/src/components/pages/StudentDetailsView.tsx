@@ -7,9 +7,9 @@
 
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
-
+import { EnrollmentModal } from "./EnrollmentModal";
 
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -51,6 +51,7 @@ export default function StudentDetailsView() {
     const { studentId } = useParams();
     const navigate = useNavigate();
     const parsedStudentId = studentId ? Number(studentId) : null;
+    const [enrollmentStudent, setEnrollmentStudent] = useState<Student | null>(null);
 
     const {
         data: studentData,
@@ -128,7 +129,7 @@ export default function StudentDetailsView() {
                     </h1>
 
                     <p className="text-lg text-muted-foreground font-mono">
-                        {student.studentId}
+                        Student ID: {student.studentId}
                     </p>
 
                 </div>
@@ -197,27 +198,47 @@ export default function StudentDetailsView() {
             )}
 
             {/* Empty */}
-            {!enrollmentsLoading &&
+            {!enrollmentsLoading && student &&
                 (!enrollments || enrollments.length === 0) && (
                     <Card padding="lg">
-                        <p className="text-muted-foreground">
-                            This student is not enrolled in any courses.
+                        
+                        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+                            <div></div>
+                        <p className="text-muted-foreground center-align">
+                            {student.name } is not enrolled in any courses.
                         </p>
+
+                        <div></div>
+                        <div></div>
+                        <Button onClick={() => setEnrollmentStudent(student)}>
+                                <Plus />
+                                Add Course
+                            </Button>
+                        </div>
+
                     </Card>
                 )}
 
             {/* Roster */}
             {!enrollmentsLoading &&
-                enrollments &&
+                enrollments && student &&
                 enrollments.length > 0 && (
 
                     <Card padding="responsive">
 
-                        <div className="mb-6">
+                        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-4">
 
                             <h2 className="text-xl font-semibold">
-                                Student Courses
+                                {student.name}'s Courses
                             </h2>
+
+                            <div></div>
+                            <div></div>
+
+                            <Button onClick={() => setEnrollmentStudent(student)}>
+                                <Plus />
+                                Add Course
+                            </Button>
 
                         </div>
 
@@ -271,7 +292,7 @@ export default function StudentDetailsView() {
                     </Card>
 
                 )}
-
+            <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
         </div>
     );
 }

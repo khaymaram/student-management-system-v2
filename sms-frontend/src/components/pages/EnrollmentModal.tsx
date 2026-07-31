@@ -24,7 +24,7 @@ import {
 } from "../../hooks/useEnrollments";
 import { apiErrorMessage } from "../../lib/axios";
 import type { Student } from "../../types";
-const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
+// const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 interface EnrollmentModalProps {
   student: Student | null;
   onClose: () => void;
@@ -119,7 +119,7 @@ export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
                 <TableHead>Code</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Credits</TableHead>
-                <TableHead>Grade</TableHead>
+                {/* <TableHead>Grade</TableHead> */}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -131,7 +131,7 @@ export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
                   courseCode={enrollment.courseCode}
                   title={enrollment.course?.title}
                   credits={enrollment.course?.credits}
-                  grade={enrollment.grade}
+                  // grade={enrollment.grade}
                   onRemove={() => handleUnenroll(enrollment.courseCode)}
                   removing={unenrollMutation.isPending}
                 />
@@ -149,7 +149,7 @@ function EnrollmentRow({
   courseCode,
   title,
   credits,
-  grade,
+  // grade,
   onRemove,
   removing,
 }: {
@@ -157,24 +157,24 @@ function EnrollmentRow({
   courseCode: string;
   title?: string;
   credits?: number;
-  grade?: string;
+  // grade?: string;
   onRemove: () => void;
   removing: boolean;
 }) {
-  const [gradeInput, setGradeInput] = useState(grade ?? "");
+  // const [gradeInput, setGradeInput] = useState(grade ?? "");
   const updateGrade = useUpdateEnrollmentGrade();
   function handleSaveGrade() {
-    updateGrade.mutate(
-      {
-        studentId,
-        courseCode,
-        grade: gradeInput,
-      },
-      {
-        onSuccess: () => toast.success(`Recorded grade for ${courseCode}.`),
-        onError: (err) => toast.error(apiErrorMessage(err)),
-      }
-    );
+    // updateGrade.mutate(
+    //   // {
+    //   //   studentId,
+    //   //   courseCode,
+    //   //   grade: gradeInput,
+    //   // },
+    //   // {
+    //   //   // onSuccess: () => toast.success(`Recorded grade for ${courseCode}.`),
+    //   //   // onError: (err) => toast.error(apiErrorMessage(err)),
+    //   // }
+    // );
   }
 
   return (
@@ -186,7 +186,7 @@ function EnrollmentRow({
       </TableCell>
       <TableCell>{title ?? "—"}</TableCell>
       <TableCell>{credits ?? "—"}</TableCell>
-      <TableCell>
+      {/* <TableCell>
         <div className="flex items-center gap-2">
           <Select
             value={gradeInput || "NONE"}
@@ -215,7 +215,7 @@ function EnrollmentRow({
             <Check />
           </Button>
         </div>
-      </TableCell>
+      </TableCell> */}
       <TableCell>
         <div className="flex justify-end">
           <Button variant="destructive" size="sm" onClick={onRemove} disabled={removing}>

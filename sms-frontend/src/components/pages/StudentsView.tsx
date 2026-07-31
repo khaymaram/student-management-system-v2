@@ -36,12 +36,10 @@ export function StudentsView() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [addForm, setAddForm] = useState(emptyForm);
-  const [addFieldErrors, setAddFieldErrors] =
-    useState<Partial<Record<keyof StudentInput, string>>>({});
+  const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof StudentInput, string>>>({});
 
   const [editForm, setEditForm] = useState(emptyForm);
-  const [editFieldErrors, setEditFieldErrors] =
-    useState<Partial<Record<keyof StudentInput, string>>>({});
+  const [editFieldErrors, setEditFieldErrors] = useState<Partial<Record<keyof StudentInput, string>>>({});
 
   const filter: StudentFilter =
     mode === "grade" && gradeInput

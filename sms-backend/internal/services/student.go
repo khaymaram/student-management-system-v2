@@ -32,12 +32,14 @@ type StudentService interface {
 
 type studentService struct {
 	repository repositories.StudentRepository
+	enrollmentRepository repositories.EnrollmentRepository
 }
 
-func NewStudentService(repo repositories.StudentRepository) StudentService {
+func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository) StudentService {
 
 	return &studentService{
 		repository: repo,
+		enrollmentRepository: eRepo,
 	}
 }
 
@@ -101,6 +103,12 @@ func (s *studentService) Update(id int, req dto.UpdateStudentRequest) error {
 }
 
 func (s *studentService) Delete(id int) error {
+	if _, err := s.repository.GetByID(id); err != nil {
+		return err
+	}
+	if err := s.enrollmentRepository.DeleteByStudent(id); err != nil {
+		return err 
+	}
 	return s.repository.Delete(id)
 }
 

@@ -26,26 +26,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	enrollmentRepository :=
+		repositories.NewEnrollmentRepository(db)
 	studentRepository :=
 		repositories.NewStudentRepository(db)
 
 	studentService :=
-		services.NewStudentService(studentRepository)
+		services.NewStudentService(studentRepository, enrollmentRepository)
 
 	studentHandler :=
 		handlers.NewStudentHandler(studentService)
 
 	courseRepository :=
 		repositories.NewCourseRepository(db)
-	enrollmentRepository :=
-		repositories.NewEnrollmentRepository(db)
+
 	courseService :=
 		services.NewCourseService(courseRepository, enrollmentRepository)
 
 	courseHandler :=
 		handlers.NewCourseHandler(courseService)
-
 
 
 	enrollmentService :=

@@ -1,24 +1,25 @@
 // StudentsView.tsx renders the roster UI and handles filtering, editing, and deletion.
 import { useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2, BookOpen } from "lucide-react"; import { toast } from "sonner";
-import { useDeleteStudent, useStudents, useUpdateStudent, useCreateStudent, type StudentFilter } from "../hooks/useStudents";
-import { apiErrorMessage } from "../lib/axios";
-import { StudentInputSchema, type Student, type StudentInput } from "../types";
-import PageHeader from "./ui/PageHeader";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import Input from "./ui/Input";
-import Modal from "./ui/Modal";
-import { Badge } from "./ui/Badge";
+import { useDeleteStudent, useStudents, useUpdateStudent, useCreateStudent, type StudentFilter } from "../../hooks/useStudents";
+import { apiErrorMessage } from "../../lib/axios";
+import { StudentInputSchema, type Student, type StudentInput } from "../../types";
+import PageHeader from "../ui/PageHeader";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
+import { Badge } from "../ui/Badge";
 import { EnrollmentModal } from "./EnrollmentModal";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from "./ui/Select";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui/Table";
+} from "../ui/Select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 
 type FilterMode = "all" | "grade" | "honors" | "search" | "name";
 
@@ -276,9 +277,11 @@ export function StudentsView() {
             (
               <TableRow key={student.studentId}>
                 <TableCell>
-                  <Badge variant="outline" className="font-mono">
-                    #{student.studentId}
-                  </Badge>
+                  <Link to={`/roster/${student.studentId}`}>
+                    <Badge variant="outline" className="font-mono cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
+                      #{student.studentId}
+                    </Badge>
+                  </Link>
                 </TableCell>
                 <TableCell className="font-medium">{student.name}</TableCell>
                 <TableCell>{student.grade}</TableCell>

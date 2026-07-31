@@ -1,8 +1,9 @@
 // page details will have: 
 //  back to courses button at the top of the page 
 // TITLE: [Course Title] and the subheading will be [Course Code]
-// in the header area there will be: number of students enrolled, professor (add this later), credits, avg grade (maybe)
+// in the header area there will be: number of students enrolled, professor, credits, avg grade 
 // body: table with students enrolled: id, name, grade level, course grade, delete from course button
+// add enroll student button next to student roster title so that user can add student to the course from the course details 
 
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,8 +11,8 @@ import { ArrowLeft, Check, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 
-import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
+import { Button } from "../ui/Button";
+import { Badge } from "../ui/Badge";
 import {
     Table,
     TableHeader,
@@ -19,8 +20,8 @@ import {
     TableRow,
     TableHead,
     TableCell,
-} from "../components/ui/Table";
-import { Card } from "../components/ui/Card";
+} from "../ui/Table";
+import { Card } from "../ui/Card";
 
 import {
     Select,
@@ -28,19 +29,19 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "../components/ui/Select";
+} from "../ui/Select";
 
 import {
     useCourseRoster,
     useUpdateEnrollmentGrade,
     useUnenrollStudent,
-} from "../hooks/useEnrollments";
+} from "../../hooks/useEnrollments";
 
-import { useCourse } from "../hooks/useCourses";
+import { useCourse } from "../../hooks/useCourses";
 
-import { apiErrorMessage } from "../lib/axios";
+import { apiErrorMessage } from "../../lib/axios";
 
-import type { Course, Enrollment } from "../types";
+import type { Course, Enrollment } from "../../types";
 
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 

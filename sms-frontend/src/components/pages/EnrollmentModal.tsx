@@ -4,26 +4,26 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Trash2, GraduationCap, Check } from "lucide-react";
-import Modal from "./ui/Modal";
-import { Button } from "./ui/Button";
-import { Badge } from "./ui/Badge";
+import Modal from "../ui/Modal";
+import { Button } from "../ui/Button";
+import { Badge } from "../ui/Badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/Select";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui/Table";
-import { useCourses } from "../hooks/useCourses";
+} from "../ui/Select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
+import { useCourses } from "../../hooks/useCourses";
 import {
   useStudentEnrollments,
   useEnrollStudent,
   useUnenrollStudent,
   useUpdateEnrollmentGrade,
-} from "../hooks/useEnrollments";
-import { apiErrorMessage } from "../lib/axios";
-import type { Student } from "../types";
+} from "../../hooks/useEnrollments";
+import { apiErrorMessage } from "../../lib/axios";
+import type { Student } from "../../types";
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 interface EnrollmentModalProps {
   student: Student | null;

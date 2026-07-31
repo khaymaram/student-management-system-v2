@@ -1,23 +1,23 @@
 // ProfessorsView.tsx renders the roster UI and handles filtering, editing, and deletion.
 import { useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2, BookOpen } from "lucide-react"; import { toast } from "sonner";
-import { useDeleteProfessor, useProfessors, useUpdateProfessor, useCreateProfessor, type ProfessorFilter } from "../hooks/useProfessors";
-import { apiErrorMessage } from "../lib/axios";
-import { ProfessorInputSchema, type Professor, type ProfessorInput } from "../types";
-import PageHeader from "./ui/PageHeader";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import Input from "./ui/Input";
-import Modal from "./ui/Modal";
-import { Badge } from "./ui/Badge";
+import { useDeleteProfessor, useProfessors, useUpdateProfessor, useCreateProfessor, type ProfessorFilter } from "../../hooks/useProfessors";
+import { apiErrorMessage } from "../../lib/axios";
+import { ProfessorInputSchema, type Professor, type ProfessorInput } from "../../types";
+import PageHeader from "../ui/PageHeader";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
+import { Badge } from "../ui/Badge";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue
-} from "./ui/Select";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui/Table";
+} from "../ui/Select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 
 type FilterMode = "all" | "search" | "name";
 

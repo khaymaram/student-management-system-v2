@@ -51,6 +51,14 @@ export function useStudents(filter: StudentFilter = { type: "all"}){
     });
 }
 
+export function useStudent(id: number | null){
+    return useQuery({
+        queryKey: ["student", id],
+        queryFn: () => get(`/students/${id}`),
+        enabled: !!id,
+    });
+}
+
 export function useCreateStudent() {
     const queryClient = useQueryClient();
     // Send a POST request to create a student and refresh the student list on success.

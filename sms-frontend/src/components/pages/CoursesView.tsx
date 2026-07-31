@@ -1,16 +1,16 @@
 import { useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useProfessors } from "../hooks/useProfessors";
-import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../hooks/useCourses";
-import { apiErrorMessage } from "../lib/axios";
-import { CourseInputSchema, type Course, type CourseInput } from "../types";
-import PageHeader from "./ui/PageHeader";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import Input from "./ui/Input";
-import Modal from "./ui/Modal";
-import { Badge } from "./ui/Badge";
+import { useProfessors } from "../../hooks/useProfessors";
+import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../../hooks/useCourses";
+import { apiErrorMessage } from "../../lib/axios";
+import { CourseInputSchema, type Course, type CourseInput } from "../../types";
+import PageHeader from "../ui/PageHeader";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
+import { Badge } from "../ui/Badge";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -18,8 +18,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue
-} from "./ui/Select";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui/Table";
+} from "../ui/Select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 
 type FilterMode = "all" | "credits" | "title" | "professorId" | "code";
 
@@ -246,8 +246,6 @@ export function CoursesView() {
 
                 <SelectContent>
 
-
-
                   {professors?.map((professor) => (
                     <SelectItem
                       key={professor.id}
@@ -324,7 +322,7 @@ export function CoursesView() {
                 </TableCell>
                 <TableCell className="font-medium">{course.title}</TableCell>
                 <TableCell>
-                  {course.professor?.name ?? "NA"}
+                  {course.professor?.name ?? "TBD"}
                 </TableCell>
                 <TableCell>{course.credits}</TableCell>
                 <TableCell>

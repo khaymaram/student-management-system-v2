@@ -11,7 +11,6 @@ import { Button } from "./ui/Button";
 import Input from "./ui/Input";
 import Modal from "./ui/Modal";
 import { Badge } from "./ui/Badge";
-// import { RosterModal } from "./RosterModal";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -25,7 +24,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 type FilterMode = "all" | "credits" | "title" | "code";
 
 export function CoursesView() {
-  const emptyForm = { title: "", credits: "", code: "", professorId: "NONE", };
+  const emptyForm = { title: "", credits: "", code: "", professorId: "No Professor", };
   const [mode, setMode] = useState<FilterMode>("all");
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
@@ -84,7 +83,7 @@ export function CoursesView() {
 
     setEditForm({
       title: course.title,
-      professorId: course.professorId ?? "",
+      professorId: course.professorId ?? "No Professor",
       credits: String(course.credits),
       code: course.code,
     });
@@ -334,7 +333,7 @@ export function CoursesView() {
             onValueChange={(value) =>
               handleAddFormChange(
                 "professorId",
-                value === "NONE" ? "" : value
+                value === "NONE" ? "No Professor" : value
               )
             }
           >
@@ -419,7 +418,7 @@ export function CoursesView() {
             onValueChange={(value) =>
               handleEditFormChange(
                 "professorId",
-                value === "NONE" ? "" : value
+                value === "NONE" ? "No Professor" : value
               )
             }
           >
@@ -427,16 +426,12 @@ export function CoursesView() {
               <SelectValue placeholder="Select Professor" />
             </SelectTrigger>
 
-            
-
             <SelectContent>
-
               <SelectItem value="NONE">
-              No Professor
-            </SelectItem>
+                No Professor
+              </SelectItem>
 
               {professors?.map((professor) => (
-
                 <SelectItem
                   key={professor.id}
                   value={professor.id}
@@ -445,7 +440,6 @@ export function CoursesView() {
                 </SelectItem>
 
               ))}
-
             </SelectContent>
 
           </Select>

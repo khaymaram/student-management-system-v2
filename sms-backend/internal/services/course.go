@@ -88,9 +88,8 @@ func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 		course.Credits = req.Credits
 	}
 
-	if req.ProfessorID != "" {
-		course.ProfessorID = req.ProfessorID
-	}
+	course.ProfessorID = req.ProfessorID
+	
 	return c.repository.Update(course)
 }
 

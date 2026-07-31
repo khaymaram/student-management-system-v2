@@ -45,7 +45,7 @@ export const CourseSchema = z.object({
     title: z.string(),
     code: z.string(),
     credits: z.number(),
-    professorId: z.string().optional(),
+professorId: z.string().nullable().optional(),
     professor: ProfessorSchema.optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
@@ -67,10 +67,14 @@ export const CourseInputSchema = z.object({
         .min(1)
         .max(4),
 
-    professorId: z.string()
-        .trim()
-        .toUpperCase()
-        .regex(/^P\d{4,}$/),
+    professorId: z
+        .string()
+        .transform(v => v.trim())
+        .transform(v => v === "" ? undefined : v.toUpperCase())
+        .refine(
+            v => v === undefined || /^P\d{4,}$/.test(v),
+            "Professor IDs must follow the format P1234..."
+        ),
 });
 export type CourseInput = z.infer<typeof CourseInputSchema>;
 

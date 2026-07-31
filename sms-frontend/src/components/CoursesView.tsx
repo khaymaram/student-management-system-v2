@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfessors } from "../hooks/useProfessors";
 import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../hooks/useCourses";
@@ -25,13 +25,12 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 type FilterMode = "all" | "credits" | "title" | "code";
 
 export function CoursesView() {
-  const emptyForm = { title: "", credits: "", code: "", professorId: "", };
+  const emptyForm = { title: "", credits: "", code: "", professorId: "NONE", };
   const [mode, setMode] = useState<FilterMode>("all");
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  // const [rosterCourse, setRosterCourse] = useState<Course | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
   const { data: professors } = useProfessors();
@@ -293,14 +292,6 @@ export function CoursesView() {
                 <TableCell>{course.credits}</TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-2">
-                    {/* <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRosterCourse(course)}
-                    >
-                      <Users />
-                      Roster
-                    </Button> */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -341,7 +332,10 @@ export function CoursesView() {
           <Select
             value={addForm.professorId}
             onValueChange={(value) =>
-              handleAddFormChange("professorId", value)
+              handleAddFormChange(
+                "professorId",
+                value === "NONE" ? "" : value
+              )
             }
           >
             <SelectTrigger>
@@ -350,15 +344,17 @@ export function CoursesView() {
 
             <SelectContent>
 
-              {professors?.map((professor) => (
+              <SelectItem value="NONE">
+                No Professor
+              </SelectItem>
 
+              {professors?.map((professor) => (
                 <SelectItem
                   key={professor.id}
                   value={professor.id}
                 >
                   {professor.name}
                 </SelectItem>
-
               ))}
 
             </SelectContent>
@@ -419,16 +415,25 @@ export function CoursesView() {
           />
 
           <Select
-            value={editForm.professorId}
+            value={editForm.professorId ?? "NONE"}
             onValueChange={(value) =>
-              handleEditFormChange("professorId", value)
+              handleEditFormChange(
+                "professorId",
+                value === "NONE" ? "" : value
+              )
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Professor" />
             </SelectTrigger>
 
+            
+
             <SelectContent>
+
+              <SelectItem value="NONE">
+              No Professor
+            </SelectItem>
 
               {professors?.map((professor) => (
 
@@ -477,7 +482,6 @@ export function CoursesView() {
           </div>
         </form>
       </Modal>
-      {/* <RosterModal course={rosterCourse} onClose={() => setRosterCourse(null)} /> */}
     </div>
   );
 }

@@ -14,7 +14,7 @@ type Course struct {
 
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
 
-	ProfessorID string     `gorm:"column:professor_id;type:nvarchar(50)" json:"professorId"`
+	ProfessorID *string     `gorm:"column:professor_id;type:nvarchar(50)" json:"professorId"`
 	Professor   *Professor `gorm:"foreignKey:ProfessorID;references:ID" json:"professor,omitempty"`
 }
 

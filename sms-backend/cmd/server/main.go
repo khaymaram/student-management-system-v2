@@ -58,7 +58,7 @@ func main() {
 		repositories.NewProfessorRepository(db)
 
 	professorService :=
-		services.NewProfessorService(professorRepository)
+		services.NewProfessorService(professorRepository, courseRepository)
 
 	professorHandler :=
 		handlers.NewProfessorHandler(professorService)

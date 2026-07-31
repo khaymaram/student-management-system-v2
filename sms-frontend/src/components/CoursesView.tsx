@@ -246,9 +246,7 @@ export function CoursesView() {
 
                 <SelectContent>
 
-                  <SelectItem value="NONE">
-                    No Professor
-                  </SelectItem>
+
 
                   {professors?.map((professor) => (
                     <SelectItem
@@ -258,13 +256,15 @@ export function CoursesView() {
                       {professor.name}
                     </SelectItem>
                   ))}
-
+                  <SelectItem value="NONE">
+                    No Professor
+                  </SelectItem>
                 </SelectContent>
 
               </Select>
             </div>
           )}
-        
+
 
           {mode === "code" && (
             <div className="w-full sm:w-48">

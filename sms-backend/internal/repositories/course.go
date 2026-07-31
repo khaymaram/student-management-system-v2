@@ -18,6 +18,8 @@ type CourseRepository interface {
 
 	Search(title string) ([]models.Course, error)
 	FilterByCredits(credits int) ([]models.Course, error)
+
+	UnassignProfessor(professorId string) error
 }
 
 type courseRepository struct {
@@ -29,7 +31,14 @@ func NewCourseRepository(db *gorm.DB) CourseRepository {
 		db: db,
 	}
 }
+func (r *courseRepository) UnassignProfessor(professorId string) error {
 
+	return r.db.
+		Model(&models.Course{}).
+		Where("professor_id = ?", professorId).
+		Update("professor_id", nil).
+		Error
+}
 func (r *courseRepository) GetByProfessor(professorId string) ([]models.Course, error) {
 
 	var courses []models.Course

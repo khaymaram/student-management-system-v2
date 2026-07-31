@@ -25,12 +25,14 @@ type ProfessorService interface {
 
 type professorService struct {
 	repository repositories.ProfessorRepository
+	courseRepo repositories.CourseRepository
 }
 
-func NewProfessorService(repo repositories.ProfessorRepository) ProfessorService {
+func NewProfessorService(repo repositories.ProfessorRepository, courseRepo repositories.CourseRepository) ProfessorService {
 
 	return &professorService{
 		repository: repo,
+		courseRepo: courseRepo,
 	}
 }
 
@@ -38,8 +40,8 @@ func (c *professorService) GetAll() ([]models.Professor, error) {
 	return c.repository.GetAll()
 }
 
-func (c *professorService) GetByID(code string) (*models.Professor, error) {
-	return c.repository.GetByID(code)
+func (c *professorService) GetByID(id string) (*models.Professor, error) {
+	return c.repository.GetByID(id)
 }
 
 func (c *professorService) Create(req dto.CreateProfessorRequest) error {
@@ -78,10 +80,13 @@ func (c *professorService) Update(id string, req dto.UpdateProfessorRequest) err
 	return c.repository.Update(professor)
 }
 
-func (c *professorService) Delete(code string) error {
-	return c.repository.Delete(code)
+func (c *professorService) Delete(id string) error {
+	if err := c.courseRepo.UnassignProfessor(id); err != nil {
+		return err
+	}
+	return c.repository.Delete(id)
 }
 
-func (c *professorService) Search(title string) ([]models.Professor, error) {
-	return c.repository.Search(title)
+func (c *professorService) Search(name string) ([]models.Professor, error) {
+	return c.repository.Search(name)
 }

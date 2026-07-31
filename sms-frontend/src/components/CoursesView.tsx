@@ -24,7 +24,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 type FilterMode = "all" | "credits" | "title" | "code";
 
 export function CoursesView() {
-  const emptyForm = { title: "", credits: "", code: "", professorId: "No Professor", };
+  const emptyForm = { title: "", credits: "", code: "", professorId: "", };
   const [mode, setMode] = useState<FilterMode>("all");
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");

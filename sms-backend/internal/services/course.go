@@ -13,6 +13,7 @@ import (
 type CourseService interface {
 	GetAll() ([]models.Course, error)
 	GetByCode(code string) (*models.Course, error)
+	GetByProfessor(professorId string) ([]models.Course, error)
 
 	Create(dto.CreateCourseRequest) error
 
@@ -36,6 +37,9 @@ func NewCourseService(repo repositories.CourseRepository, eRepo repositories.Enr
 		repository: repo,
 		enrollmentRepository: eRepo,
 	}
+}
+func (c *courseService) GetByProfessor(professorId string) ([]models.Course, error) {
+	return c.repository.GetByProfessor(professorId)
 }
 
 func (c *courseService) GetAll() ([]models.Course, error) {

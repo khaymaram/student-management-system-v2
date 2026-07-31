@@ -9,6 +9,7 @@ import (
 )
 
 type CourseRepository interface {
+	GetByProfessor(professorId string) ([]models.Course, error)
 	GetAll() ([]models.Course, error)
 	GetByCode(code string) (*models.Course, error)
 	Create(student *models.Course) error
@@ -27,6 +28,17 @@ func NewCourseRepository(db *gorm.DB) CourseRepository {
 	return &courseRepository{
 		db: db,
 	}
+}
+
+func (r *courseRepository) GetByProfessor(professorId string) ([]models.Course, error) {
+
+	var courses []models.Course
+
+	err := r.db.Preload("Professor").
+		Where("professor_id = ?", professorId).
+		Find(&courses).Error
+
+	return courses, err
 }
 
 func (r *courseRepository) GetAll() ([]models.Course, error) {

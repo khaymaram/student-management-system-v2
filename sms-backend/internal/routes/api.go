@@ -132,6 +132,11 @@ func Setup(
 				courseHandler.GetByCode,
 			)
 
+			// courses.GET(
+			// 	"/:professorId",
+			// 	courseHandler.GetByProfessor,
+			// )
+
 			courses.PUT(
 				"/:code",
 				courseHandler.Update,

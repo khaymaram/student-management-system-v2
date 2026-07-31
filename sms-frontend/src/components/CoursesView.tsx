@@ -21,7 +21,7 @@ import {
 } from "./ui/Select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui/Table";
 
-type FilterMode = "all" | "credits" | "title" | "code";
+type FilterMode = "all" | "credits" | "title" | "professorId" | "code";
 
 export function CoursesView() {
   const emptyForm = { title: "", credits: "", code: "", professorId: "", };
@@ -29,6 +29,7 @@ export function CoursesView() {
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
+  const [profInput, setProfInput] = useState("");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
@@ -47,9 +48,11 @@ export function CoursesView() {
       ? { type: "credits", credits: Number(creditInput) }
       : mode === "title" && titleInput
         ? { type: "title", title: String(titleInput) }
-        : mode === "code" && codeInput
-          ? { type: "code", code: String(codeInput) }
-          : { type: "all" };
+        : mode === "professorId" && profInput
+          ? { type: "professorId", professorId: String(profInput) }
+          : mode === "code" && codeInput
+            ? { type: "code", code: String(codeInput) }
+            : { type: "all" };
 
   const { data: courses, isLoading, isError, error } = useCourses(filter);
   const deleteCourse = useDeleteCourse();
@@ -197,6 +200,7 @@ export function CoursesView() {
                 <SelectItem value="all">All courses</SelectItem>
                 <SelectItem value="credits">By credits</SelectItem>
                 <SelectItem value="title">Search by course title</SelectItem>
+                <SelectItem value="professorId">Search by professor</SelectItem>
                 <SelectItem value="code">Search by course code</SelectItem>
               </SelectContent>
             </Select>
@@ -227,6 +231,40 @@ export function CoursesView() {
               />
             </div>
           )}
+
+          {mode === "professorId" && (
+            <div className="w-full sm:w-64">
+              <Select
+                value={profInput}
+                onValueChange={(value) =>
+                  setProfInput(value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Professor" />
+                </SelectTrigger>
+
+                <SelectContent>
+
+                  <SelectItem value="NONE">
+                    No Professor
+                  </SelectItem>
+
+                  {professors?.map((professor) => (
+                    <SelectItem
+                      key={professor.id}
+                      value={professor.id}
+                    >
+                      {professor.name}
+                    </SelectItem>
+                  ))}
+
+                </SelectContent>
+
+              </Select>
+            </div>
+          )}
+        
 
           {mode === "code" && (
             <div className="w-full sm:w-48">

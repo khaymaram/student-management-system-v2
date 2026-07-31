@@ -5,11 +5,12 @@ import type { Course, CourseInput } from "../types";
 
 export type CourseFilter =
     | { type: "all" }
-    | { type: "credits"; credits: number}
+    | { type: "credits"; credits: number }
     | { type: "title"; title: string }
+    | { type: "professorId"; professorId: string }
     | { type: "code"; code: string };
 
-export function useCourses(filter: CourseFilter = { type: "all"}){
+export function useCourses(filter: CourseFilter = { type: "all" }) {
     // React Query fetches courses from the backend and caches the result.
     // The query key includes the current filter so different views can reuse
     // their own cached data without interfering with each other.
@@ -24,8 +25,13 @@ export function useCourses(filter: CourseFilter = { type: "all"}){
                     if (!query) {
                         return [];
                     }
-
                     return await get<Course[]>(`/courses/search?title=${query}`);
+                case "professorId":
+                    const query2 = encodeURIComponent(filter.professorId.trim());
+                    if (!query2) {
+                        return [];
+                    }
+                    return await get<Course[]>(`/courses?professorId=${query2}`);
                 case "code": {
                     try {
                         const course = await get<Course>(`/courses/${filter.code}`);
@@ -70,8 +76,8 @@ export function useUpdateCourses() {
     // Update an existing course and invalidate cached queries so the UI refreshes.
     // This keeps the roster view in sync with the backend after an edit.
     return useMutation({
-        mutationFn: async ({ courseCode, input }: { courseCode: string; input: CourseInput}) => {
-            const {data} = await api.put(`/courses/${courseCode}`, input);
+        mutationFn: async ({ courseCode, input }: { courseCode: string; input: CourseInput }) => {
+            const { data } = await api.put(`/courses/${courseCode}`, input);
             return data;
         },
         onSuccess: () => {

@@ -23,24 +23,79 @@ func NewCourseHandler(service services.CourseService) *CourseHandler {
 }
 
 // GET /courses returns every student record.
+// func (h *CourseHandler) GetAll(c *gin.Context) {
+
+// 	courses, err := h.service.GetAll()
+
+// 	if err != nil {
+// 		helpers.ErrorResponse(
+// 			c,
+// 			http.StatusInternalServerError,
+// 			err.Error(),
+// 		)
+// 		return
+// 	}
+
+// 	helpers.SuccessResponse(
+// 		c,
+// 		http.StatusOK,
+// 		courses,
+// 	)
+// }
 func (h *CourseHandler) GetAll(c *gin.Context) {
 
-	courses, err := h.service.GetAll()
+    professorId := c.Query("professorId")
+
+    if professorId != "" {
+
+        courses, err := h.service.GetByProfessor(professorId)
+
+        if err != nil {
+            helpers.ErrorResponse(
+                c,
+                http.StatusInternalServerError,
+                err.Error(),
+            )
+            return
+        }
+
+        helpers.SuccessResponse(
+            c,
+            http.StatusOK,
+            courses,
+        )
+        return
+    }
+
+    courses, err := h.service.GetAll()
+
+    if err != nil {
+        helpers.ErrorResponse(
+            c,
+            http.StatusInternalServerError,
+            err.Error(),
+        )
+        return
+    }
+
+    helpers.SuccessResponse(
+        c,
+        http.StatusOK,
+        courses,
+    )
+}
+func (h *CourseHandler) GetByProfessor(c *gin.Context) {
+
+	professorId := c.Param("professorId")
+
+	courses, err := h.service.GetByProfessor(professorId)
 
 	if err != nil {
-		helpers.ErrorResponse(
-			c,
-			http.StatusInternalServerError,
-			err.Error(),
-		)
+		helpers.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	helpers.SuccessResponse(
-		c,
-		http.StatusOK,
-		courses,
-	)
+	helpers.SuccessResponse(c, http.StatusOK, courses)
 }
 
 // GET /courses/:code

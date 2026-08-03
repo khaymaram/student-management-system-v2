@@ -1,6 +1,7 @@
 // ProfessorsView.tsx renders the roster UI and handles filtering, editing, and deletion.
 import { useState, type FormEvent } from "react";
-import { Plus, Pencil, Trash2, BookOpen } from "lucide-react"; import { toast } from "sonner";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useDeleteProfessor, useProfessors, useUpdateProfessor, useCreateProfessor, type ProfessorFilter } from "../../hooks/useProfessors";
 import { apiErrorMessage } from "../../lib/axios";
 import { ProfessorInputSchema, type Professor, type ProfessorInput } from "../../types";
@@ -28,7 +29,6 @@ export function ProfessorsView() {
     const [searchInput, setSearchInput] = useState("");
     const [nameInput, setNameInput] = useState("");
     const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
-    const [teachingProfessor, setTeachingProfessor] = useState<Professor | null>(null);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -257,12 +257,10 @@ export function ProfessorsView() {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            // need to implement smth similar to courses details but instead for 
-                                            // professor details which shows 
-                                            onClick={() => setTeachingProfessor(professor)}
+                                            onClick={() => openEditProfessorModal(professor)}
                                         >
-                                            <BookOpen />
-                                            Courses
+                                            <Pencil />
+                                            Edit
                                         </Button>
                                         <Button
                                             variant="outline"

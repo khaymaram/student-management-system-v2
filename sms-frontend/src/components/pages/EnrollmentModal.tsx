@@ -3,7 +3,7 @@
 // student has taken.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Trash2, GraduationCap, Check } from "lucide-react";
+import { Trash2, GraduationCap } from "lucide-react";
 import Modal from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -20,7 +20,6 @@ import {
   useStudentEnrollments,
   useEnrollStudent,
   useUnenrollStudent,
-  useUpdateEnrollmentGrade,
 } from "../../hooks/useEnrollments";
 import { apiErrorMessage } from "../../lib/axios";
 import type { Student } from "../../types";
@@ -127,11 +126,9 @@ export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
               {enrollments.map((enrollment) => (
                 <EnrollmentRow
                   key={enrollment.courseCode}
-                  studentId={student.studentId}
                   courseCode={enrollment.courseCode}
                   title={enrollment.course?.title}
                   credits={enrollment.course?.credits}
-                  // grade={enrollment.grade}
                   onRemove={() => handleUnenroll(enrollment.courseCode)}
                   removing={unenrollMutation.isPending}
                 />
@@ -145,38 +142,18 @@ export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
 }
 
 function EnrollmentRow({
-  studentId,
   courseCode,
   title,
   credits,
-  // grade,
   onRemove,
   removing,
 }: {
-  studentId: number;
   courseCode: string;
   title?: string;
   credits?: number;
-  // grade?: string;
   onRemove: () => void;
   removing: boolean;
 }) {
-  // const [gradeInput, setGradeInput] = useState(grade ?? "");
-  const updateGrade = useUpdateEnrollmentGrade();
-  function handleSaveGrade() {
-    // updateGrade.mutate(
-    //   // {
-    //   //   studentId,
-    //   //   courseCode,
-    //   //   grade: gradeInput,
-    //   // },
-    //   // {
-    //   //   // onSuccess: () => toast.success(`Recorded grade for ${courseCode}.`),
-    //   //   // onError: (err) => toast.error(apiErrorMessage(err)),
-    //   // }
-    // );
-  }
-
   return (
     <TableRow>
       <TableCell>

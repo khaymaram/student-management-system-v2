@@ -35,7 +35,6 @@ import {
     useStudentEnrollments,
     useUpdateEnrollmentGrade,
     useUnenrollStudent,
-    useEnrollStudent,
 } from "../../hooks/useEnrollments";
 
 import { useStudent } from "../../hooks/useStudents";
@@ -46,6 +45,14 @@ import type { Student, Enrollment } from "../../types";
 
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 
+function getTotalCredits(enrollments: Enrollment[] | undefined) {
+    return (
+        enrollments?.reduce(
+            (sum, enrollment) => sum + (enrollment.course?.credits ?? 0),
+            0
+        ) ?? 0
+    );
+}
 
 export default function StudentDetailsView() {
     const { studentId } = useParams();
@@ -64,6 +71,11 @@ export default function StudentDetailsView() {
         data: enrollments,
         isLoading: enrollmentsLoading,
     } = useStudentEnrollments(parsedStudentId);
+
+    const totalCredits = useMemo(
+        () => getTotalCredits(enrollments),
+        [enrollments]
+    );
 
     // const averageGrade = useMemo(() => {
     //     if (!enrollments?.length) return null;
@@ -166,9 +178,8 @@ export default function StudentDetailsView() {
                                 Credits
                             </p>
 
-                            {/* need to calculate total credits */}
                             <p className="mt-1 text-3xl font-bold">
-                                TBD
+                                {totalCredits}
                             </p>
                         </div>
 
@@ -201,16 +212,16 @@ export default function StudentDetailsView() {
             {!enrollmentsLoading && student &&
                 (!enrollments || enrollments.length === 0) && (
                     <Card padding="lg">
-                        
+
                         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
                             <div></div>
-                        <p className="text-muted-foreground center-align">
-                            {student.name } is not enrolled in any courses.
-                        </p>
+                            <p className="text-muted-foreground center-align">
+                                {student.name} is not enrolled in any courses.
+                            </p>
 
-                        <div></div>
-                        <div></div>
-                        <Button onClick={() => setEnrollmentStudent(student)}>
+                            <div></div>
+                            <div></div>
+                            <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
                                 Add Course
                             </Button>

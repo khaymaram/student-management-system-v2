@@ -19,11 +19,13 @@ import {
     SelectValue
 } from "../ui/Select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
+import { useCourses } from "@/hooks/useCourses";
 
 type FilterMode = "all" | "search" | "name";
 
 export function ProfessorsView() {
     const emptyForm = { id: "", name: "" };
+    const { data: courses = [] } = useCourses();
 
     const [mode, setMode] = useState<FilterMode>("all");
     const [searchInput, setSearchInput] = useState("");
@@ -33,12 +35,10 @@ export function ProfessorsView() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     const [addForm, setAddForm] = useState(emptyForm);
-    const [addFieldErrors, setAddFieldErrors] =
-        useState<Partial<Record<keyof ProfessorInput, string>>>({});
+    const [addFieldErrors, setAddFieldErrors] = useState<Partial<Record<keyof ProfessorInput, string>>>({});
 
     const [editForm, setEditForm] = useState(emptyForm);
-    const [editFieldErrors, setEditFieldErrors] =
-        useState<Partial<Record<keyof ProfessorInput, string>>>({});
+    const [editFieldErrors, setEditFieldErrors] = useState<Partial<Record<keyof ProfessorInput, string>>>({});
 
     const filter: ProfessorFilter =
         mode === "search" && searchInput
@@ -97,6 +97,13 @@ export function ProfessorsView() {
         setIsAddModalOpen(false);
         setAddForm({ ...emptyForm });
         setAddFieldErrors({});
+    }
+
+    function getProfessorStatus(professorId: string) {
+        // check how many courses the professor is teaching and return "active" if they are teaching at least one course, otherwise return "inactive"
+        const teachingCourses = courses.filter((course) => course.professorId === professorId);
+        const status = teachingCourses.length > 0 ? "active" : "inactive";
+        return status;
     }
 
     function addProfessor(e: FormEvent) {
@@ -239,6 +246,7 @@ export function ProfessorsView() {
                         <TableRow>
                             <TableHead>ID</TableHead>
                             <TableHead>Name</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -252,6 +260,19 @@ export function ProfessorsView() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="font-medium">{professor.name}</TableCell>
+                                <TableCell>
+                                    {(() => {
+                                        const professorStatus = getProfessorStatus(professor.id);
+                                        return (
+                                            <Badge
+                                                variant="outline"
+                                                className={professorStatus === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-red-800"}
+                                            >
+                                                {professorStatus === "active" ? "Active" : "Inactive"}
+                                            </Badge>
+                                        );
+                                    })()}
+                                </TableCell>
                                 <TableCell>
                                     <div className="flex items-center justify-end gap-2">
                                         <Button

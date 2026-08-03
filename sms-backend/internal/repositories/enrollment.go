@@ -17,11 +17,12 @@ type EnrollmentRepository interface {
 	Exists(studentId int, courseCode string) (bool, error)
 	GetByStudentAndCourse(studentId int, courseCode string) (*models.Enrollment, error)
 
+	GetAll() ([]models.Enrollment, error)
 	GetByStudent(studentId int) ([]models.Enrollment, error)
 	GetByCourse(courseCode string) ([]models.Enrollment, error)
 
-	DeleteByCourse(courseCode string) (error)
-	DeleteByStudent(studentId int) (error)
+	DeleteByCourse(courseCode string) error
+	DeleteByStudent(studentId int) error
 }
 
 type enrollmentRepository struct {
@@ -75,6 +76,21 @@ func (r *enrollmentRepository) GetByStudentAndCourse(studentId int, courseCode s
 	return &enrollment, nil
 }
 
+// GetAll returns every enrollment with the related student and course records
+// preloaded so the frontend can render a unified recent-activity view.
+func (r *enrollmentRepository) GetAll() ([]models.Enrollment, error) {
+
+	var enrollments []models.Enrollment
+
+	err := r.db.
+		Preload("Student").
+		Preload("Course").
+		Order("created_at desc").
+		Find(&enrollments).Error
+
+	return enrollments, err
+}
+
 // GetByStudent returns every course a student is enrolled in, with the
 // related Course record preloaded so the frontend gets title/credits in
 // one request.
@@ -106,10 +122,10 @@ func (r *enrollmentRepository) GetByCourse(courseCode string) ([]models.Enrollme
 
 func (r *enrollmentRepository) DeleteByCourse(courseCode string) error {
 	return r.db.Where("LOWER(course_code) = LOWER(?)", courseCode).
-	Delete(&models.Enrollment{}).Error
+		Delete(&models.Enrollment{}).Error
 }
 
 func (r *enrollmentRepository) DeleteByStudent(studentId int) error {
 	return r.db.Where("student_id = ?", studentId).
-	Delete(&models.Enrollment{}).Error
+		Delete(&models.Enrollment{}).Error
 }

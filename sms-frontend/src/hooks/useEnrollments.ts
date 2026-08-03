@@ -5,6 +5,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, get, post, put } from "../lib/axios";
 import type { Enrollment } from "../types";
 
+// A global list of all enrollments, preloaded with student/course details.
+export function useAllEnrollments() {
+  return useQuery<Enrollment[]>({
+    queryKey: ["enrollments", "all"],
+    queryFn: async () => await get<Enrollment[]>(`/enrollments`),
+  });
+}
+
 // A student's list of enrolled courses. Disabled until a real studentId is provided.
 export function useStudentEnrollments(studentId: number | null) {
   return useQuery<Enrollment[]>({

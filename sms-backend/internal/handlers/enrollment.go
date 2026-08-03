@@ -97,6 +97,18 @@ func (h *EnrollmentHandler) UpdateGrade(c *gin.Context) {
 	helpers.SuccessResponse(c, http.StatusOK, "grade updated")
 }
 
+// GET /enrollments lists every enrollment across the system.
+func (h *EnrollmentHandler) GetAll(c *gin.Context) {
+	enrollments, err := h.service.GetAll()
+
+	if err != nil {
+		helpers.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helpers.SuccessResponse(c, http.StatusOK, enrollments)
+}
+
 // GET /students/:studentId/enrollments lists every course a student is taking.
 func (h *EnrollmentHandler) GetByStudent(c *gin.Context) {
 

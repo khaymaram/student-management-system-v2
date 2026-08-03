@@ -284,7 +284,7 @@ export function StudentsView() {
                 <TableCell className="font-medium">{student.name}</TableCell>
                 <TableCell>{student.grade}</TableCell>
                 <TableCell>
-                  <span className={student.gpa >= 3.5 ? "text-success font-semibold" : undefined}>
+                  <span className={student.gpa >= 3.5 ? "text-success font-bold" : undefined}>
                     {student.gpa.toFixed(2)}
                   </span>
                 </TableCell>

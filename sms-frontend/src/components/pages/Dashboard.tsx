@@ -7,7 +7,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 import { useStudents } from "../../hooks/useStudents";
 import { useCourses } from "../../hooks/useCourses";
 import { useProfessors } from "../../hooks/useProfessors";
-import { useStudentEnrollments } from "../../hooks/useEnrollments";
+import { useAllEnrollments } from "../../hooks/useEnrollments";
+import { Badge } from "../ui/Badge";
 
 const rainbowAccents = [
     { bg: '#FEE2E2', text: '#B91C1C' },
@@ -22,7 +23,7 @@ export function Dashboard() {
     const { data: students = [] } = useStudents();
     const { data: courses = [] } = useCourses();
     const { data: professors = [] } = useProfessors();
-    const { data: enrollments = [] } = useStudentEnrollments(null);
+    const { data: enrollments = [] } = useAllEnrollments();
 
     const totalStudents = students.length;
     const totalCourses = courses.length;
@@ -36,7 +37,7 @@ export function Dashboard() {
         ? (students.reduce((sum, student) => sum + (student.gpa ?? 0), 0) / totalStudents).toFixed(2)
         : '0.00';
     
-        //replace with revenue when financial data is available
+    //replace with revenue when financial data is available
     const honorRollStudents = students.filter((student) => (student.gpa ?? 0) >= 3.5).length;
 
     const recentActions = [
@@ -44,21 +45,25 @@ export function Dashboard() {
             action: 'Student Added',
             details: `${student.name} was added to the roster`,
             date: student.createdAt ?? new Date().toISOString(),
+            accent: rainbowAccents[1],
         })),
         ...courses.map((course) => ({
             action: 'Course Added',
             details: `${course.title} (${course.code}) was added to the catalog`,
             date: course.createdAt ?? new Date().toISOString(),
+            accent: rainbowAccents[2],
         })),
         ...professors.map((professor) => ({
             action: 'Professor Added',
             details: `${professor.name} (${professor.id}) joined the faculty`,
             date: professor.createdAt ?? new Date().toISOString(),
+            accent: rainbowAccents[3],
         })),
         ...enrollments.map((enrollment) => ({
             action: 'Enrollment',
             details: `${enrollment.student?.name ?? `Student #${enrollment.studentId}`} enrolled in ${enrollment.course?.code ?? enrollment.courseCode}`,
             date: enrollment.enrolledAt ?? enrollment.updatedAt ?? new Date().toISOString(),
+            accent: rainbowAccents[4],
         })),
     ]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -148,13 +153,25 @@ export function Dashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {recentActions.map((item) => (
-                                <TableRow key={`${item.action}-${item.details}-${item.date}`}>
-                                    <TableCell>{item.action}</TableCell>
-                                    <TableCell>{item.details}</TableCell>
-                                    <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
+                            {recentActions.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                                        No recent activity yet.
+                                    </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                recentActions.map((item) => (
+                                    <TableRow key={`${item.action}-${item.details}-${item.date}`}>
+                                        <TableCell>
+                                            <Badge className="px-2 py-1 text-xs">
+                                                {item.action}
+                                            </Badge>
+                                            </TableCell>
+                                        <TableCell>{item.details}</TableCell>
+                                        <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </Card>

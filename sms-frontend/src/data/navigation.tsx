@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { GraduationCap, BookOpen, UserCheck2, LayoutDashboard } from 'lucide-react';
+import { GraduationCap, BookOpen, UserCheck2, LayoutDashboard, CircleDollarSign} from 'lucide-react';
 
 export interface NavigationItem {
   label: string;
@@ -28,5 +28,11 @@ export const navigationItems: NavigationItem[] = [
     label: 'Professors',
     path: '/professors',
     icon: <UserCheck2 size={20}/>
+  },
+  {
+    label: 'Finances',
+    path: '/finances',
+    icon: <CircleDollarSign size={20}/>
   }
+  
 ];

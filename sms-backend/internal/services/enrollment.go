@@ -18,6 +18,7 @@ type EnrollmentService interface {
 	Unenroll(studentId int, courseCode string) error
 	UpdateGrade(studentId int, courseCode string, req dto.UpdateEnrollmentRequest) error
 
+	GetAll() ([]models.Enrollment, error)
 	GetByStudent(studentId int) ([]models.Enrollment, error)
 	GetByCourse(courseCode string) ([]models.Enrollment, error)
 }
@@ -106,6 +107,10 @@ func (s *enrollmentService) UpdateGrade(studentId int, courseCode string, req dt
 	enrollment.Grade = req.Grade
 
 	return s.repository.Update(enrollment)
+}
+
+func (s *enrollmentService) GetAll() ([]models.Enrollment, error) {
+	return s.repository.GetAll()
 }
 
 func (s *enrollmentService) GetByStudent(studentId int) ([]models.Enrollment, error) {

@@ -38,6 +38,14 @@ func Setup(
 	api := router.Group("/api")
 	{
 
+		enrollments := api.Group("/enrollments")
+		{
+			enrollments.GET(
+				"",
+				enrollmentHandler.GetAll,
+			)
+		}
+
 		students := api.Group("/students")
 		{
 

@@ -2,7 +2,7 @@
 // total students, average gpa, total courses offered, total professors, etc.
 import PageHeader from "../ui/PageHeader";
 import { Card } from "../ui/Card";
-import { UserCheck2, Users, BookOpen, Award, GraduationCap } from "lucide-react";
+import { UserCheck2, Users, BookOpen, Award, GraduationCap, Star } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import { useStudents } from "../../hooks/useStudents";
 import { useCourses } from "../../hooks/useCourses";
@@ -92,13 +92,13 @@ export function Dashboard() {
         {
             label: 'Active Professors',
             value: activeProfessors.toString(),
-            icon: UserCheck2,
+            icon: GraduationCap,
             accent: rainbowAccents[4],
         },
         {
             label: 'Honor Roll',
             value: honorRollStudents.toString(),
-            icon: GraduationCap,
+            icon: Star,
             accent: rainbowAccents[5],
         },
     ];

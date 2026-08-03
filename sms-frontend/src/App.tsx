@@ -6,6 +6,7 @@ import { CoursesView } from './components/pages/CoursesView';
 import CourseDetailsView from "./components/pages/CourseDetailsView";
 import { ProfessorsView } from './components/pages/ProfessorsView';
 import StudentDetailsView from './components/pages/StudentDetailsView';
+import { Dashboard } from './components/pages/Dashboard';
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +18,7 @@ function App() {
           <Route path="/courses" element={<CoursesView />} />
           <Route path="/courses/:courseCode" element={<CourseDetailsView />}/>
           <Route path="/professors" element={<ProfessorsView />}/>
+          <Route path="/dashboard" element={<Dashboard/>}/>
         </Route>
       </Routes>
       <Toaster

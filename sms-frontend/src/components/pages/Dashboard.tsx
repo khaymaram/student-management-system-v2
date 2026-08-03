@@ -45,25 +45,25 @@ export function Dashboard() {
             action: 'Student Added',
             details: `${student.name} was added to the roster`,
             date: student.createdAt ?? new Date().toISOString(),
-            accent: rainbowAccents[4],
+            accent: rainbowAccents[0],
         })),
         ...courses.map((course) => ({
             action: 'Course Added',
             details: `${course.title} (${course.code}) was added to the catalog`,
             date: course.createdAt ?? new Date().toISOString(),
-            accent: rainbowAccents[5],
+            accent: rainbowAccents[1],
         })),
         ...professors.map((professor) => ({
             action: 'Professor Added',
             details: `${professor.name} (${professor.id}) joined the faculty`,
             date: professor.createdAt ?? new Date().toISOString(),
-            accent: rainbowAccents[3],
+            accent: rainbowAccents[2],
         })),
         ...enrollments.map((enrollment) => ({
             action: 'Enrollment',
             details: `${enrollment.student?.name ?? `Student #${enrollment.studentId}`} enrolled in ${enrollment.course?.code ?? enrollment.courseCode}`,
             date: enrollment.enrolledAt ?? enrollment.updatedAt ?? new Date().toISOString(),
-            accent: rainbowAccents[2],
+            accent: rainbowAccents[4],
         })),
     ]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())

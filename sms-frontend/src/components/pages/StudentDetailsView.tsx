@@ -185,7 +185,6 @@ export default function StudentDetailsView() {
 
                             <div></div>
                             <div></div>
-                            // edit so that a max of 15 credits can be enrolled in a sem
                             <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
                                 Add Course

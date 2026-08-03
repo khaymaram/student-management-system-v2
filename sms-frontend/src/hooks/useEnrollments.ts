@@ -29,11 +29,14 @@ export function useEnrollStudent() {
     mutationFn: async ({ studentId, courseCode }: { studentId: number; courseCode: string }) => {
       return await post<string>(`/students/${studentId}/enrollments`, { courseCode });
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: async (_data, variables) => {
       // Refresh both sides of the relationship so the student's course list
       // and the course's roster both reflect the new enrollment immediately.
-      queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] });
-      queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["enrollments"] }),
+        queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] }),
+        queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] }),
+      ]);
     },
   });
 }
@@ -44,9 +47,12 @@ export function useUnenrollStudent() {
     mutationFn: async ({ studentId, courseCode }: { studentId: number; courseCode: string }) => {
       await api.delete(`/students/${studentId}/enrollments/${courseCode}`);
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] });
-      queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] });
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["enrollments"] }),
+        queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] }),
+        queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] }),
+      ]);
     },
   });
 }
@@ -65,9 +71,12 @@ export function useUpdateEnrollmentGrade() {
     }) => {
       return await put<string>(`/students/${studentId}/enrollments/${courseCode}`, { grade });
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] });
-      queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] });
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["enrollments"] }),
+        queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] }),
+        queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] }),
+      ]);
     },
   });
 }

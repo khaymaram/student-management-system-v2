@@ -12,7 +12,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route index element={<Navigate to="/roster" replace />} />
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/roster" element={<StudentsView />} />
           <Route path="/roster/:studentId" element={<StudentDetailsView/>}/>
           <Route path="/courses" element={<CoursesView />} />

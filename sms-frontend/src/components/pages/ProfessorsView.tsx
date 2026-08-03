@@ -263,14 +263,6 @@ export function ProfessorsView() {
                                             Edit
                                         </Button>
                                         <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => openEditProfessorModal(professor)}
-                                        >
-                                            <Pencil />
-                                            Edit
-                                        </Button>
-                                        <Button
                                             variant="destructive"
                                             size="sm"
                                             onClick={() => handleDelete(professor)}

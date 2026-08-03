@@ -35,7 +35,7 @@ export const FORM_BASE_STYLES = `
   w-full border transition-all duration-200
   bg-card text-card-foreground placeholder:text-muted-foreground
   focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50
-  disabled:bg-secondary disabled:cursor-not-allowed disabled:opacity-60
+  disabled:bg-muted/35 disabled:text-slate-600 disabled:cursor-not-allowed disabled:opacity-90
 `;
 
 export const FORM_ERROR_STYLES = `

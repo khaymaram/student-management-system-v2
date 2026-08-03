@@ -77,40 +77,6 @@ export default function StudentDetailsView() {
         [enrollments]
     );
 
-    // const averageGrade = useMemo(() => {
-    //     if (!enrollments?.length) return null;
-
-    //     const points: Record<string, number> = {
-    //         A: 4,
-    //         B: 3,
-    //         C: 2,
-    //         D: 1,
-    //         F: 0,
-    //     };
-
-    //     const graded = enrollments.filter(
-    //         (e) => e.grade && points[e.grade] !== undefined
-    //     );
-
-    //     if (graded.length === 0) return null;
-
-    //     const total = graded.reduce(
-    //         (sum, e) => sum + points[e.grade!],
-    //         0
-    //     );
-
-    //     const avg = total / graded.length;
-
-    //     if (avg >= 3.5) return "A";
-    //     if (avg >= 2.5) return "B";
-    //     if (avg >= 1.5) return "C";
-    //     if (avg >= 0.5) return "D";
-    //     return "F";
-
-
-    //     // return (total / graded.length).toFixed(2);
-    // }, [enrollments]);
-
     if (!studentId) {
         return (
             <div className="p-6">

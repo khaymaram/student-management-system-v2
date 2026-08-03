@@ -45,7 +45,7 @@ export const CourseSchema = z.object({
     title: z.string(),
     code: z.string(),
     credits: z.number(),
-professorId: z.string().nullable().optional(),
+    professorId: z.string().nullable().optional(),
     professor: ProfessorSchema.optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
@@ -60,7 +60,7 @@ export const CourseInputSchema = z.object({
     code: z.string()
         .trim()
         .toUpperCase()
-        .regex(/^[A-Z]{4}\d{3}$/),
+        .regex(/^[A-Z]{4}\d{3}$/, "Course codes must follow the format ABCD123"),
 
     credits: z.coerce.number()
         .int()

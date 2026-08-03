@@ -45,13 +45,13 @@ export function Dashboard() {
             action: 'Student Added',
             details: `${student.name} was added to the roster`,
             date: student.createdAt ?? new Date().toISOString(),
-            accent: rainbowAccents[1],
+            accent: rainbowAccents[4],
         })),
         ...courses.map((course) => ({
             action: 'Course Added',
             details: `${course.title} (${course.code}) was added to the catalog`,
             date: course.createdAt ?? new Date().toISOString(),
-            accent: rainbowAccents[2],
+            accent: rainbowAccents[5],
         })),
         ...professors.map((professor) => ({
             action: 'Professor Added',
@@ -63,7 +63,7 @@ export function Dashboard() {
             action: 'Enrollment',
             details: `${enrollment.student?.name ?? `Student #${enrollment.studentId}`} enrolled in ${enrollment.course?.code ?? enrollment.courseCode}`,
             date: enrollment.enrolledAt ?? enrollment.updatedAt ?? new Date().toISOString(),
-            accent: rainbowAccents[4],
+            accent: rainbowAccents[2],
         })),
     ]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -161,9 +161,9 @@ export function Dashboard() {
                                 </TableRow>
                             ) : (
                                 recentActions.map((item) => (
-                                    <TableRow key={`${item.action}-${item.details}-${item.date}`}>
-                                        <TableCell>
-                                            <Badge className="px-2 py-1 text-xs">
+                                    <TableRow key={`${item.action}-${item.details}-${item.date}`} >
+                                        <TableCell >
+                                            <Badge className="px-2 py-1 text-xs" style={{ backgroundColor: item.accent.bg, color: item.accent.text }} >
                                                 {item.action}
                                             </Badge>
                                             </TableCell>

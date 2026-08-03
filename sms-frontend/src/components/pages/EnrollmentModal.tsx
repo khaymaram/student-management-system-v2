@@ -42,12 +42,31 @@ export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
     [enrollments],
   );
 
-  const availableCourses = (allCourses ?? []).filter((c) => !enrolledCodes.has(c.code));
+  const currentCredits = useMemo(
+    () => (enrollments ?? []).reduce((sum, enrollment) => sum + (enrollment.course?.credits ?? 0), 0),
+    [enrollments],
+  );
+
+  const selectedCourseCredits = useMemo(
+    () => (allCourses ?? []).find((course) => course.code === selectedCourse)?.credits,
+    [allCourses, selectedCourse],
+  );
+
+  const availableCourses = (allCourses ?? []).filter(
+    (course) => !enrolledCodes.has(course.code) && currentCredits + course.credits <= 15,
+  );
+
+  const isOverCreditLimit = selectedCourseCredits !== undefined && currentCredits + selectedCourseCredits > 15;
 
   if (!student) return null;
 
   function handleEnroll() {
     if (!student || !selectedCourse) return;
+    if (isOverCreditLimit) {
+      toast.error("This enrollment would push the student over 15 credits.");
+      return;
+    }
+
     enrollMutation.mutate(
       { studentId: student.studentId, courseCode: selectedCourse },
       {
@@ -87,23 +106,32 @@ export function EnrollmentModal({ student, onClose }: EnrollmentModalProps) {
               <SelectContent>
                 {availableCourses.length === 0 ? (
                   <div className="px-3 py-2 text-sm text-muted-foreground">
-                    No available courses
+                    {currentCredits >= 15
+                      ? "Student is already at the 15-credit limit"
+                      : "No available courses"}
                   </div>
                 ) : (
                   availableCourses.map((course) => (
                     <SelectItem key={course.code} value={course.code}>
-                      {course.code} — {course.title}
+                      {course.code} — {course.title} ({course.credits} credits)
                     </SelectItem>
                   ))
                 )}
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleEnroll} disabled={!selectedCourse || enrollMutation.isPending}>
+          <Button
+            onClick={handleEnroll}
+            disabled={!selectedCourse || enrollMutation.isPending || isOverCreditLimit || currentCredits >= 15}
+          >
             <GraduationCap />
             Enroll
           </Button>
         </div>
+
+        <p className="text-xs text-muted-foreground">
+          Semester credit limit: {currentCredits} / 15
+        </p>
 
         {isLoading && <p className="text-sm text-muted-foreground">Loading courses…</p>}
 

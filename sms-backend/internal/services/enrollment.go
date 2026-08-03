@@ -54,7 +54,8 @@ func (s *enrollmentService) Enroll(studentId int, req dto.CreateEnrollmentReques
 		return err
 	}
 
-	if _, err := s.courseRepository.GetByCode(req.CourseCode); err != nil {
+	course, err := s.courseRepository.GetByCode(req.CourseCode)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("course not found")
 		}
@@ -62,13 +63,28 @@ func (s *enrollmentService) Enroll(studentId int, req dto.CreateEnrollmentReques
 	}
 
 	exists, err := s.repository.Exists(studentId, req.CourseCode)
-
 	if err != nil {
 		return err
 	}
 
 	if exists {
 		return errors.New("student is already enrolled in this course")
+	}
+
+	studentEnrollments, err := s.repository.GetByStudent(studentId)
+	if err != nil {
+		return err
+	}
+
+	currentCredits := 0
+	for _, enrollment := range studentEnrollments {
+		if enrollment.Course != nil {
+			currentCredits += enrollment.Course.Credits
+		}
+	}
+
+	if currentCredits+course.Credits > 15 {
+		return errors.New("student cannot enroll in more than 15 credits in a semester")
 	}
 
 	enrollment := models.Enrollment{

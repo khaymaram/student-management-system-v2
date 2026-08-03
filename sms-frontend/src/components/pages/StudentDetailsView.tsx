@@ -3,8 +3,6 @@
 // Name
 // in the header area there will be: number of courses enrolled, grade level, credits, gpa
 // body: table with courses enrolled: id, title, course grade, unenroll from course button
-
-
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Trash2, Plus } from "lucide-react";
@@ -187,6 +185,7 @@ export default function StudentDetailsView() {
 
                             <div></div>
                             <div></div>
+                            // edit so that a max of 15 credits can be enrolled in a sem
                             <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
                                 Add Course

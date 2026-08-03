@@ -141,7 +141,6 @@ export default function CourseDetailsView() {
                             <p className="text-sm text-muted-foreground">
                                 Students Enrolled
                             </p>
-
                             <p className="mt-1 text-3xl font-bold">
                                 {enrollments?.length ?? 0}
                             </p>

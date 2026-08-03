@@ -86,7 +86,7 @@ export function CoursesView() {
 
     setEditForm({
       title: course.title,
-      professorId: course.professorId ?? "No Professor",
+      professorId: course.professorId ?? "",
       credits: String(course.credits),
       code: course.code,
     });
@@ -365,11 +365,11 @@ export function CoursesView() {
           />
 
           <Select
-            value={addForm.professorId}
+            value={addForm.professorId || "NONE"}
             onValueChange={(value) =>
               handleAddFormChange(
                 "professorId",
-                value === "NONE" ? "No Professor" : value
+                value === "NONE" ? "" : value
               )
             }
           >
@@ -450,11 +450,11 @@ export function CoursesView() {
           />
 
           <Select
-            value={editForm.professorId ?? "NONE"}
+            value={editForm.professorId || "NONE"}
             onValueChange={(value) =>
               handleEditFormChange(
                 "professorId",
-                value === "NONE" ? "No Professor" : value
+                value === "NONE" ? "" : value
               )
             }
           >

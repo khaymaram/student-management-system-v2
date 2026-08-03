@@ -69,8 +69,14 @@ export const CourseInputSchema = z.object({
 
     professorId: z
         .string()
-        .transform(v => v.trim())
-        .transform(v => v === "" ? undefined : v.toUpperCase())
+        .optional()
+        .transform((v) => {
+            if (v === undefined || v === null || v === "" || v === "NONE" || v === "No Professor") {
+                return undefined;
+            }
+
+            return v.trim().toUpperCase();
+        })
         .refine(
             v => v === undefined || /^P\d{4,}$/.test(v),
             "Professor IDs must follow the format P1234..."

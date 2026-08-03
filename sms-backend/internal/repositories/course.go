@@ -79,7 +79,15 @@ func (r *courseRepository) Create(course *models.Course) error {
 }
 
 func (r *courseRepository) Update(course *models.Course) error {
-	return r.db.Save(course).Error
+	updates := map[string]interface{}{
+		"title":        course.Title,
+		"credits":      course.Credits,
+		"professor_id": course.ProfessorID,
+	}
+
+	return r.db.Model(&models.Course{}).
+		Where("LOWER(code) = LOWER(?)", course.Code).
+		Updates(updates).Error
 }
 
 func (r *courseRepository) Delete(code string) error {

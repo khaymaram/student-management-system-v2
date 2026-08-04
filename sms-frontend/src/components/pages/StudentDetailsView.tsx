@@ -250,14 +250,12 @@ export default function StudentDetailsView() {
                 (!enrollments || enrollments.length === 0) && (
                     <Card padding="lg">
 
-                        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-                            <div></div>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
                             <p className="text-muted-foreground center-align">
                                 {student.name} is not enrolled in any courses.
                             </p>
 
-                            <div></div>
-                            <div></div>
+                            
                             <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
                                 Add Course
@@ -274,14 +272,13 @@ export default function StudentDetailsView() {
 
                     <Card padding="responsive">
 
-                        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-4">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
 
                             <h2 className="text-xl font-semibold">
                                 {student.name}'s Courses
                             </h2>
 
-                            <div></div>
-                            <div></div>
+                            
 
                             <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
@@ -359,7 +356,7 @@ export default function StudentDetailsView() {
                                 </Badge>
                             </div>
                         </div>
-
+                        {/* fix so that the table automaticallly refreshes when the payment is made */}
                         <Table >
                             <TableBody>
                                 <TableRow >
@@ -395,7 +392,7 @@ export default function StudentDetailsView() {
                 </div>
 
             )}
-
+            {/* fix so that it doesnt require a manual refresh after every payment */}
             <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
             <Modal isOpen={!!paymentFinance} onClose={closePayModal} title="Pay Student Fees">
                 <div className="space-y-4">

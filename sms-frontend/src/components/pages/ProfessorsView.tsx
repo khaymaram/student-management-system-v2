@@ -265,7 +265,7 @@ export function ProfessorsView() {
                                         const professorStatus = getProfessorStatus(professor.id);
                                         return (
                                             <Badge
-                                                variant="outline"
+                                                
                                                 className={professorStatus === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-red-800"}
                                             >
                                                 {professorStatus === "active" ? "Active" : "Inactive"}

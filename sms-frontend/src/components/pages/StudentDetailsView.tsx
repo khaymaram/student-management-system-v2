@@ -5,7 +5,7 @@
 // body: table with courses enrolled: id, title, course grade, unenroll from course button
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Plus, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import { EnrollmentModal } from "./EnrollmentModal";
 
@@ -37,11 +37,22 @@ import {
 
 import { useStudent } from "../../hooks/useStudents";
 
+import { useFinance } from "../../hooks/useFinances";
+
 import { apiErrorMessage } from "../../lib/axios";
 
-import type { Student, Enrollment } from "../../types";
+import type { Student, Enrollment, Finance } from "../../types";
 
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
+
+const rainbowAccents = [
+    { bg: '#FEE2E2', text: '#B91C1C' },
+    { bg: '#FFEDD5', text: '#C2410C' },
+    { bg: '#FEF3C7', text: '#B45309' },
+    { bg: '#DCFCE7', text: '#166534' },
+    { bg: '#DBEAFE', text: '#1D4ED8' },
+    { bg: '#EDE9FE', text: '#6D28D9' },
+];
 
 function getTotalCredits(enrollments: Enrollment[] | undefined) {
     return (
@@ -64,6 +75,13 @@ export default function StudentDetailsView() {
     } = useStudent(parsedStudentId);
 
     const student = studentData as Student | undefined;
+
+    const {
+        data: financeData,
+        isLoading: financeLoading,
+    } = useFinance(parsedStudentId)
+
+    const finance = financeData as Finance | undefined;
 
     const {
         data: enrollments,
@@ -267,6 +285,62 @@ export default function StudentDetailsView() {
                     </Card>
 
                 )}
+
+
+            {/* Finances */}
+            {finance && !financeLoading && student && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                    <Card padding={"responsive"}>
+                        <div className="mb-6">
+                            <h2 className="text-xl font-semibold">
+                                {student.name}'s Finances
+                            </h2>
+                            <div>
+                                <Badge style={{
+                                    backgroundColor: finance.isInState ? rainbowAccents[4].bg : rainbowAccents[5].bg,
+                                    color: finance.isInState ? rainbowAccents[4].text : rainbowAccents[5].text,
+                                }}>
+                                    {finance.isInState ? "In-state" : "Out-of-state"}
+                                </Badge>
+                            </div>
+                        </div>
+
+                        <Table >
+                            <TableBody>
+                                <TableRow >
+                                <TableCell>Tuition:</TableCell>
+                                <TableCell align="right">${finance.tuition}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>Scholarships:</TableCell>
+                                <TableCell align="right">${finance.scholarship}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>Paid:</TableCell>
+                                <TableCell align="right">${finance.paid}</TableCell>
+                            </TableRow>
+                            <TableRow style={{ backgroundColor: finance.remaining > 0 ? rainbowAccents[0].bg : rainbowAccents[3].bg, color: finance.remaining > 0 ? rainbowAccents[0].text : rainbowAccents[3].text }}>
+                                <TableCell>Balance Remaining:</TableCell>
+                                <TableCell align="right">${finance.remaining}</TableCell>
+                            </TableRow>
+                            </TableBody>
+                        </Table>
+
+                        <br></br>
+                        <Button>
+                            <HandCoins />
+                            Pay
+                        </Button>
+                    </Card>
+                    <Card padding={"responsive"}>
+                                <div>
+                                    Pie Chart with Remaining, Paid, Scholarship
+                                </div>
+                    </Card>
+                </div>
+
+            )}
+
             <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
         </div>
     );

@@ -8,7 +8,13 @@ export function useFinances() {
     queryFn: async () => await get<Finance[]>("/finances"),
   });
 }
-
+export function useFinance(id: number | null){
+    return useQuery({
+        queryKey: ["finance", id],
+        queryFn: () => get(`/finances/${id}`),
+        enabled: !!id,
+    });
+}
 export function useUpdateFinance() {
   const queryClient = useQueryClient();
 

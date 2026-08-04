@@ -110,6 +110,7 @@ export const FinanceSchema = z.object({
     paid: z.number(),
     isInState: z.boolean(),
     remaining: z.number(),
+    updatedAt: z.string().optional(),
 });
 export type Finance = z.infer<typeof FinanceSchema>;
 

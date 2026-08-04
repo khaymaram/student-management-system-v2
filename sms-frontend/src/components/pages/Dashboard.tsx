@@ -8,6 +8,7 @@ import { useStudents } from "../../hooks/useStudents";
 import { useCourses } from "../../hooks/useCourses";
 import { useProfessors } from "../../hooks/useProfessors";
 import { useAllEnrollments } from "../../hooks/useEnrollments";
+import { useFinances } from "@/hooks/useFinances";
 import { Badge } from "../ui/Badge";
 
 const rainbowAccents = [
@@ -24,6 +25,7 @@ export function Dashboard() {
     const { data: courses = [] } = useCourses();
     const { data: professors = [] } = useProfessors();
     const { data: enrollments = [] } = useAllEnrollments();
+    const {data: finances = []} = useFinances();
 
     const totalStudents = students.length;
     const totalCourses = courses.length;
@@ -65,6 +67,13 @@ export function Dashboard() {
             date: enrollment.enrolledAt ?? enrollment.updatedAt ?? new Date().toISOString(),
             accent: rainbowAccents[4],
         })),
+        ...finances.map((finance) => ({
+            action: 'Financial',
+            // want the details to show exactly what happened (paid balance, scholarship update, residency update) and the name of the student rather than id
+            details: `Financial record for Student #${finance.studentId} was updated`,
+            date: finance.updatedAt ?? new Date().toISOString(),
+            accent: rainbowAccents[3],
+        }))
     ]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5);

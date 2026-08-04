@@ -84,7 +84,7 @@ func (r *enrollmentRepository) GetAll() ([]models.Enrollment, error) {
 
 	err := r.db.
 		Preload("Student").
-		Preload("Course").
+		Preload("Course").Preload("Course.Professor").
 		Order("created_at desc").
 		Find(&enrollments).Error
 
@@ -99,7 +99,7 @@ func (r *enrollmentRepository) GetByStudent(studentId int) ([]models.Enrollment,
 	var enrollments []models.Enrollment
 
 	err := r.db.
-		Preload("Course").
+		Preload("Course").Preload("Course.Professor").
 		Where("student_id = ?", studentId).
 		Find(&enrollments).Error
 

@@ -98,7 +98,7 @@ func (r *courseRepository) Search(title string) ([]models.Course, error) {
 
 	var courses []models.Course
 
-	err := r.db.
+	err := r.db.Preload("Professor").
 		Where("title LIKE ?", "%"+title+"%").
 		Find(&courses).Error
 
@@ -109,7 +109,7 @@ func (r *courseRepository) FilterByCredits(credits int) ([]models.Course, error)
 
 	var courses []models.Course
 
-	err := r.db.
+	err := r.db.Preload("Professor").
 		Where("credits = ?", credits).
 		Find(&courses).Error
 

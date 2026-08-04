@@ -390,7 +390,10 @@ export default function StudentDetailsView() {
                     </Card>
                     <Card padding={"responsive"}>
                         <div>
-                            Pie Chart with Remaining, Paid, Scholarship
+                            Pie Chart with Remaining, Paid, Scholarship 
+                        </div>
+                        <div>
+                            Or course schedule (once times are added)
                         </div>
                     </Card>
                 </div>

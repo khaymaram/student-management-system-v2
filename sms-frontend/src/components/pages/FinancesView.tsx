@@ -132,8 +132,8 @@ export function FinancesView() {
         if (!paymentFinance) return;
 
         const amount = Number(paymentAmount);
-        if (Number.isNaN(amount) || amount <= 0) {
-            toast.error("Enter a valid payment amount greater than 0.");
+        if (Number.isNaN(amount) || amount <= 0 || amount > paymentFinance.remaining) {
+            toast.error("Enter a valid payment amount greater than 0 and less than remaining balance.");
             return;
         }
 
@@ -288,7 +288,7 @@ export function FinancesView() {
                     <Input
                         label="Scholarship ($)"
                         inputMode="decimal"
-                        value={editScholarship}
+                        placeholder="Enter Scholarship Amount"
                         onChange={(event) => setEditScholarship(event.target.value)}
                     />
 
@@ -320,6 +320,8 @@ export function FinancesView() {
                     <Input
                         label="Payment Amount ($)"
                         inputMode="decimal"
+                        min="0"
+                        max={paymentFinance?.remaining}
                         value={paymentAmount}
                         onChange={(event) => setPaymentAmount(event.target.value)}
                         placeholder={

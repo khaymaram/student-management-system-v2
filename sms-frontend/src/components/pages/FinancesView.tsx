@@ -49,6 +49,7 @@ export function FinancesView() {
         paid: number;
         scholarship: number;
         isInState: boolean;
+        remaining: number;
     } | null>(null);
     const [editScholarship, setEditScholarship] = useState("");
     const [editResidency, setEditResidency] = useState(true);
@@ -72,7 +73,7 @@ export function FinancesView() {
         },
         {
             label: 'Balance Remaining',
-            value:formatToK(totalOutstanding),
+            value: formatToK(totalOutstanding),
             icon: AlertCircle,
             accent: rainbowAccents[0],
         }
@@ -89,7 +90,7 @@ export function FinancesView() {
         setEditScholarship("");
     };
 
-    const openPayModal = (finance: { studentId: number; paid: number; scholarship: number; isInState: boolean }) => {
+    const openPayModal = (finance: { studentId: number; paid: number; scholarship: number; isInState: boolean; remaining: number }) => {
         setPaymentFinance(finance);
         setPaymentAmount("");
     };
@@ -227,7 +228,7 @@ export function FinancesView() {
                             </TableRow>
                         ) : (
                             finances.map((finance) => (
-                                <TableRow key={finance.studentId} style={{backgroundColor: finance.remaining === 0 ? '#DCFCE7' : undefined} }>
+                                <TableRow key={finance.studentId} style={{ backgroundColor: finance.remaining === 0 ? '#DCFCE7' : undefined }}>
                                     <TableCell>
                                         <div className="flex flex-col">
                                             <span className="font-medium">#{finance.studentId}</span>
@@ -263,15 +264,15 @@ export function FinancesView() {
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                variant={finance.remaining === 0 ? "outline" : "default"}
+                                                variant={finance.remaining <= 0 ? "outline" : "default"}
                                                 onClick={() => openPayModal(finance)}
-                                                //disable button is balance is 0
-                                                disabled={finance.remaining === 0}
-                                            >   
-                                            {finance.remaining > 0 ? 
-                                            <HandCoins size={14} /> : <CheckCircle2 size={14}/> }
+                                                //disable button if balance is 0
+                                                disabled={finance.remaining <= 0}
+                                            >
+                                                {finance.remaining > 0 ?
+                                                    <HandCoins size={14} /> : <CheckCircle2 size={14} />}
                                                 {/* if balance is 0 change text of button to paid */}
-                                                {finance.remaining === 0 ? "Paid" : "Pay"}
+                                                {finance.remaining <= 0 ? "Paid" : "Pay"}
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -321,7 +322,11 @@ export function FinancesView() {
                         inputMode="decimal"
                         value={paymentAmount}
                         onChange={(event) => setPaymentAmount(event.target.value)}
-                        placeholder="25000"
+                        placeholder={
+                            paymentFinance
+                                ? "Remaining Balance: " + currency.format(paymentFinance.remaining)
+                                : "Remaining balance"
+                        }
                     />
 
                     <div className="flex justify-end gap-2 pt-2">

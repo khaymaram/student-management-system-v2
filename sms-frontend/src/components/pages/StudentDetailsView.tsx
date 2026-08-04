@@ -338,7 +338,6 @@ export default function StudentDetailsView() {
 
                 )}
 
-
             {/* Finances */}
             {finance && !financeLoading && student && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">

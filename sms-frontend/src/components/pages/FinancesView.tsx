@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import PageHeader from "../ui/PageHeader";
 import { Card } from "../ui/Card";
-import { CircleDollarSign, Star, AlertCircle, Wallet, HandCoins, Pencil, CheckCircle2 } from "lucide-react";
+import { CircleDollarSign, AlertCircle, Wallet, HandCoins, Pencil, CheckCircle2, Award} from "lucide-react";
 import { useFinances, useUpdateFinance } from "../../hooks/useFinances";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import { Badge } from "../ui/Badge";
@@ -10,7 +10,9 @@ import { Button } from "../ui/Button";
 import Modal from "../ui/Modal";
 import Input from "../ui/Input";
 import { apiErrorMessage } from "../../lib/axios";
-
+import {
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "../ui/Select";
 const rainbowAccents = [
     { bg: '#FEE2E2', text: '#B91C1C' },
     { bg: '#FFEDD5', text: '#C2410C' },
@@ -68,7 +70,7 @@ export function FinancesView() {
         {
             label: 'Scholarships Awarded',
             value: formatToK(totalScholarships),
-            icon: Star,
+            icon: Award,
             accent: rainbowAccents[2],
         },
         {
@@ -294,14 +296,19 @@ export function FinancesView() {
 
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-foreground/80">Residency</label>
-                        <select
+                        <Select
                             value={editResidency ? "in-state" : "out-of-state"}
-                            onChange={(event) => setEditResidency(event.target.value === "in-state")}
-                            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                            onValueChange={(event) => setEditResidency(event === "in-state")}
                         >
-                            <option value="in-state">In-state</option>
-                            <option value="out-of-state">Out-of-state</option>
-                        </select>
+                            <SelectTrigger>
+                                 <SelectValue placeholder="Select Residency" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="in-state">In-state</SelectItem>
+                            <SelectItem value="out-of-state">Out-of-state</SelectItem>
+                            </SelectContent>
+                            
+                        </Select>
                     </div>
 
                     <div className="flex justify-end gap-2 pt-2">

@@ -7,7 +7,7 @@
 
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Trash2, UserPlus2 } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -43,19 +43,20 @@ import { apiErrorMessage } from "../../lib/axios";
 
 import type { Course, Enrollment } from "../../types";
 
+import { RosterModal } from "./RosterModal";
+
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 
 export default function CourseDetailsView() {
     const { courseCode } = useParams();
     const navigate = useNavigate();
-
     const {
         data: courseData,
         isLoading: courseLoading,
     } = useCourse(courseCode ?? null);
 
     const course = courseData as Course | undefined;
-
+    const [enrollmentCourse, setEnrollmentCourse] = useState<Course | null>(null);
     const {
         data: enrollments,
         isLoading: rosterLoading,
@@ -193,27 +194,39 @@ export default function CourseDetailsView() {
             )}
 
             {/* Empty */}
-            {!rosterLoading &&
+            {!rosterLoading && course &&
                 (!enrollments || enrollments.length === 0) && (
                     <Card padding="lg">
-                        <p className="text-muted-foreground">
-                            No students are enrolled in this course.
-                        </p>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                            <p className="text-muted-foreground">
+                                No students are enrolled in this {course?.code}.
+                            </p>
+                            <Button onClick={() => setEnrollmentCourse(course)}>
+                                <UserPlus2 />
+                                Enroll Student
+                            </Button>
+                        </div>
+
                     </Card>
                 )}
 
             {/* Roster */}
             {!rosterLoading &&
-                enrollments &&
+                enrollments && course &&
                 enrollments.length > 0 && (
 
                     <Card padding="responsive">
 
-                        <div className="mb-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
 
                             <h2 className="text-xl font-semibold">
                                 Student Roster
                             </h2>
+
+                            <Button onClick={() => setEnrollmentCourse(course)}>
+                                <UserPlus2 />
+                                Enroll Student
+                            </Button>
 
                         </div>
 
@@ -263,7 +276,7 @@ export default function CourseDetailsView() {
                     </Card>
 
                 )}
-
+            <RosterModal course={enrollmentCourse} onClose={() => setEnrollmentCourse(null)} />
         </div>
     );
 }

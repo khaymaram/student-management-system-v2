@@ -26,6 +26,14 @@ const currency = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
 });
 
+function formatToK(value: number): string {
+    if (typeof value !== "number" || isNaN(value)) return "0";
+    return Math.abs(value) >= 1000
+        ? (value / 1000).toFixed(1).replace(/\.0$/, "") + "K"
+        : value.toString();
+}
+
+
 export function FinancesView() {
     const { data: finances = [], isLoading, isError } = useFinances();
     const updateFinance = useUpdateFinance();
@@ -51,20 +59,20 @@ export function FinancesView() {
 
     const stats = [
         {
-            label: 'Total',
-            value: currency.format(finances.reduce((sum, finance) => sum + finance.tuition, 0)),
+            label: 'Total Fees',
+            value: formatToK(finances.reduce((sum, finance) => sum + finance.tuition, 0)),
             icon: CircleDollarSign,
             accent: rainbowAccents[3],
         },
         {
-            label: 'Scholarship',
-            value: currency.format(totalScholarships),
+            label: 'Scholarships Awarded',
+            value: formatToK(totalScholarships),
             icon: Star,
             accent: rainbowAccents[2],
         },
         {
-            label: 'Balance',
-            value: currency.format(totalOutstanding),
+            label: 'Balance Remaining',
+            value:formatToK(totalOutstanding),
             icon: AlertCircle,
             accent: rainbowAccents[0],
         }
@@ -161,6 +169,7 @@ export function FinancesView() {
                     const accent = stat.accent;
 
                     return (
+                        // the cards should show any value over 1000 as 1K
                         <Card key={stat.label} padding="lg" className="space-y-4">
                             <div
                                 className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
@@ -169,7 +178,9 @@ export function FinancesView() {
                                 <Icon size={20} />
                             </div>
                             <div className="space-y-1">
-                                <h2 className="text-2xl font-semibold leading-tight">{stat.value}</h2>
+                                <h2 className="text-2xl font-semibold leading-tight">
+                                    ${stat.value}
+                                </h2>
                                 <h3 className="text-sm text-muted-foreground">{stat.label}</h3>
                             </div>
                         </Card>
@@ -216,7 +227,7 @@ export function FinancesView() {
                             </TableRow>
                         ) : (
                             finances.map((finance) => (
-                                <TableRow key={finance.studentId} style={{backgroundColor: finance.remaining === 0 ? '#DCFCE7' : undefined}}>
+                                <TableRow key={finance.studentId} style={{backgroundColor: finance.remaining === 0 ? '#DCFCE7' : undefined} }>
                                     <TableCell>
                                         <div className="flex flex-col">
                                             <span className="font-medium">#{finance.studentId}</span>
@@ -254,6 +265,8 @@ export function FinancesView() {
                                                 size="sm"
                                                 variant="default"
                                                 onClick={() => openPayModal(finance)}
+                                                //disable button is balance is 0
+                                                disabled={finance.remaining === 0}
                                             >
                                                 <HandCoins size={14} />
                                                 Pay
@@ -270,7 +283,7 @@ export function FinancesView() {
             <Modal isOpen={!!editingFinance} onClose={closeEditFinanceModal} title="Edit Finance">
                 <div className="space-y-4">
                     <Input
-                        label="Scholarship"
+                        label="Scholarship ($)"
                         inputMode="decimal"
                         value={editScholarship}
                         onChange={(event) => setEditScholarship(event.target.value)}
@@ -302,11 +315,11 @@ export function FinancesView() {
             <Modal isOpen={!!paymentFinance} onClose={closePayModal} title="Pay Student Fees">
                 <div className="space-y-4">
                     <Input
-                        label="Payment Amount"
+                        label="Payment Amount ($)"
                         inputMode="decimal"
                         value={paymentAmount}
                         onChange={(event) => setPaymentAmount(event.target.value)}
-                        placeholder="250"
+                        placeholder="25000"
                     />
 
                     <div className="flex justify-end gap-2 pt-2">

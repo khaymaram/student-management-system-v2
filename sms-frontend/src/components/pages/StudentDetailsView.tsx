@@ -8,6 +8,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Trash2, Plus, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import { EnrollmentModal } from "./EnrollmentModal";
+import Modal from "../ui/Modal";
+import Input from "../ui/Input";
 
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -37,13 +39,19 @@ import {
 
 import { useStudent } from "../../hooks/useStudents";
 
-import { useFinance } from "../../hooks/useFinances";
+import { useFinance, useUpdateFinance } from "../../hooks/useFinances";
 
 import { apiErrorMessage } from "../../lib/axios";
 
 import type { Student, Enrollment, Finance } from "../../types";
 
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
+
+const currency = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+});
 
 const rainbowAccents = [
     { bg: '#FEE2E2', text: '#B91C1C' },
@@ -82,6 +90,53 @@ export default function StudentDetailsView() {
     } = useFinance(parsedStudentId)
 
     const finance = financeData as Finance | undefined;
+
+    const [paymentFinance, setPaymentFinance] = useState<{
+        studentId: number;
+        paid: number;
+        scholarship: number;
+        isInState: boolean;
+    } | null>(null);
+    const updateFinance = useUpdateFinance();
+    const [paymentAmount, setPaymentAmount] = useState("");
+
+    const openPayModal = (finance: { studentId: number; paid: number; scholarship: number; isInState: boolean }) => {
+        setPaymentFinance(finance);
+        setPaymentAmount("");
+    };
+
+    const closePayModal = () => {
+        setPaymentFinance(null);
+        setPaymentAmount("");
+    };
+
+    const handlePay = () => {
+        if (!paymentFinance) return;
+
+        const amount = Number(paymentAmount);
+        if (Number.isNaN(amount) || amount <= 0) {
+            toast.error("Enter a valid payment amount greater than 0.");
+            return;
+        }
+
+        updateFinance.mutate(
+            {
+                studentId: paymentFinance.studentId,
+                input: {
+                    scholarship: paymentFinance.scholarship,
+                    paid: paymentFinance.paid + amount,
+                    isInState: paymentFinance.isInState,
+                },
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Payment recorded.");
+                    closePayModal();
+                },
+                onError: (error) => toast.error(apiErrorMessage(error)),
+            }
+        );
+    };
 
     const {
         data: enrollments,
@@ -308,40 +363,60 @@ export default function StudentDetailsView() {
                         <Table >
                             <TableBody>
                                 <TableRow >
-                                <TableCell>Tuition:</TableCell>
-                                <TableCell align="right">${finance.tuition}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Scholarships:</TableCell>
-                                <TableCell align="right">${finance.scholarship}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Paid:</TableCell>
-                                <TableCell align="right">${finance.paid}</TableCell>
-                            </TableRow>
-                            <TableRow style={{ backgroundColor: finance.remaining > 0 ? rainbowAccents[0].bg : rainbowAccents[3].bg, color: finance.remaining > 0 ? rainbowAccents[0].text : rainbowAccents[3].text }}>
-                                <TableCell>Balance Remaining:</TableCell>
-                                <TableCell align="right">${finance.remaining}</TableCell>
-                            </TableRow>
+                                    <TableCell>Tuition:</TableCell>
+                                    <TableCell align="right">{currency.format(finance.tuition)}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Scholarships:</TableCell>
+                                    <TableCell align="right">{currency.format(finance.scholarship)}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Paid:</TableCell>
+                                    <TableCell align="right">{currency.format(finance.paid)}</TableCell>
+                                </TableRow>
+                                <TableRow style={{ backgroundColor: finance.remaining > 0 ? rainbowAccents[0].bg : rainbowAccents[3].bg, color: finance.remaining > 0 ? rainbowAccents[0].text : rainbowAccents[3].text }}>
+                                    <TableCell>Balance Remaining:</TableCell>
+                                    <TableCell align="right">{currency.format(finance.remaining)}</TableCell>
+                                </TableRow>
                             </TableBody>
                         </Table>
 
                         <br></br>
-                        <Button>
+                        <Button type="button" onClick={() => openPayModal(finance)}>
                             <HandCoins />
                             Pay
                         </Button>
                     </Card>
                     <Card padding={"responsive"}>
-                                <div>
-                                    Pie Chart with Remaining, Paid, Scholarship
-                                </div>
+                        <div>
+                            Pie Chart with Remaining, Paid, Scholarship
+                        </div>
                     </Card>
                 </div>
 
             )}
 
             <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
+            <Modal isOpen={!!paymentFinance} onClose={closePayModal} title="Pay Student Fees">
+                <div className="space-y-4">
+                    <Input
+                        label="Payment Amount ($)"
+                        inputMode="decimal"
+                        value={paymentAmount}
+                        onChange={(event) => setPaymentAmount(event.target.value)}
+                        placeholder={finance?.remaining ? `Remaining Balance: ${currency.format(finance.remaining)}` : ""}
+                    />
+
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={closePayModal}>
+                            Cancel
+                        </Button>
+                        <Button type="button" onClick={handlePay} disabled={updateFinance.isPending}>
+                            {updateFinance.isPending ? "Processing..." : "Confirm Payment"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

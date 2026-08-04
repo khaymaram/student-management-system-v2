@@ -67,13 +67,13 @@ export function Dashboard() {
             date: enrollment.enrolledAt ?? enrollment.updatedAt ?? new Date().toISOString(),
             accent: rainbowAccents[4],
         })),
-        ...finances.map((finance) => ({
-            action: 'Financial',
-            // want the details to show exactly what happened (paid balance, scholarship update, residency update) and the name of the student rather than id
-            details: `Financial record for Student #${finance.studentId} was updated`,
-            date: finance.updatedAt ?? new Date().toISOString(),
-            accent: rainbowAccents[3],
-        }))
+        // ...finances.map((finance) => ({
+        //     action: 'Financial',
+        //     // want the details to show exactly what happened (paid balance, scholarship update, residency update) and the name of the student rather than id
+        //     details: `Financial record for Student #${finance.studentId} was updated`,
+        //     date: finance.updatedAt ?? new Date().toISOString(),
+        //     accent: rainbowAccents[3],
+        // })),
     ]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5);

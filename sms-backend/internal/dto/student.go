@@ -4,10 +4,12 @@ package dto
 
 // CreateStudentRequest is the JSON payload expected from the frontend when creating a student.
 type CreateStudentRequest struct {
-	StudentID int     `json:"studentId" binding:"required"`
-	Name      string  `json:"name" binding:"required"`
-	Grade     int64   `json:"grade" binding:"required"`
-	GPA       float64 `json:"gpa" binding:"required"`
+	StudentID   int     `json:"studentId" binding:"required"`
+	Name        string  `json:"name" binding:"required"`
+	Grade       int64   `json:"grade" binding:"required"`
+	GPA         float64 `json:"gpa" binding:"required"`
+	Scholarship float64 `json:"scholarship"`
+	IsInState   bool    `json:"isInState"`
 }
 
 // UpdateStudentRequest allows partial updates for student fields.

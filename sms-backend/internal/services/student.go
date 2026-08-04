@@ -31,15 +31,17 @@ type StudentService interface {
 }
 
 type studentService struct {
-	repository repositories.StudentRepository
+	repository           repositories.StudentRepository
 	enrollmentRepository repositories.EnrollmentRepository
+	financeRepository    repositories.FinanceRepository
 }
 
-func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository) StudentService {
+func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository, fRepo repositories.FinanceRepository) StudentService {
 
 	return &studentService{
-		repository: repo,
+		repository:           repo,
 		enrollmentRepository: eRepo,
+		financeRepository:    fRepo,
 	}
 }
 
@@ -76,7 +78,24 @@ func (s *studentService) Create(req dto.CreateStudentRequest) error {
 		GPA:   req.GPA,
 	}
 
-	return s.repository.Create(&student)
+	if err := s.repository.Create(&student); err != nil {
+		return err
+	}
+
+	finance := models.Finance{
+		StudentID:   student.ID,
+		Scholarship: req.Scholarship,
+		Paid:        0,
+		IsInState:   req.IsInState,
+	}
+
+	if finance.IsInState {
+		finance.Tuition = InStateTuition
+	} else {
+		finance.Tuition = OutStateTuition
+	}
+
+	return s.financeRepository.Create(&finance)
 }
 
 func (s *studentService) Update(id int, req dto.UpdateStudentRequest) error {
@@ -107,7 +126,7 @@ func (s *studentService) Delete(id int) error {
 		return err
 	}
 	if err := s.enrollmentRepository.DeleteByStudent(id); err != nil {
-		return err 
+		return err
 	}
 	return s.repository.Delete(id)
 }

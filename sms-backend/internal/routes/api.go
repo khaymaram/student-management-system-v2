@@ -16,6 +16,7 @@ func Setup(
 	courseHandler *handlers.CourseHandler,
 	enrollmentHandler *handlers.EnrollmentHandler,
 	professorHandler *handlers.ProfessorHandler,
+	financeHandler *handlers.FinanceHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -162,6 +163,24 @@ func Setup(
 			)
 
 		}
+		finances := api.Group("/finances")
+		{
+			finances.GET(
+				"",
+				financeHandler.GetAll,
+			)
+
+			finances.GET(
+				"/:studentId",
+				financeHandler.Get,
+			)
+
+			finances.PUT(
+				"/:studentId",
+				financeHandler.Update,
+			)
+		}
+
 		professors := api.Group("/professors")
 		{
 

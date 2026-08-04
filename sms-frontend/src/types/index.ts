@@ -102,3 +102,14 @@ export const EnrollmentSchema = z.object({
 });
 export type Enrollment = z.infer<typeof EnrollmentSchema>;
 
+export const FinanceSchema = z.object({
+    studentId: z.number(),
+    studentName: z.string().optional(),
+    tuition: z.number(),
+    scholarship: z.number(),
+    paid: z.number(),
+    isInState: z.boolean(),
+    remaining: z.number(),
+});
+export type Finance = z.infer<typeof FinanceSchema>;
+

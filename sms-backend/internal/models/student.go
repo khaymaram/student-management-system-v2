@@ -14,6 +14,8 @@ type Student struct {
 
 	GPA float64 `gorm:"column:gpa" json:"gpa"`
 
+	Finance *Finance `gorm:"foreignKey:StudentID;references:ID;constraint:OnDelete:CASCADE"`
+
 	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
 
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`

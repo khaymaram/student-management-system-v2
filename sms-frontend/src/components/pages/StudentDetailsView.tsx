@@ -349,6 +349,7 @@ function RosterRow({
             </TableCell>
 
             <TableCell>
+                {/* the professor name is not showing up */}
                 {enrollment.course?.professor?.name}
             </TableCell>
 

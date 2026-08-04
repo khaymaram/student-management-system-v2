@@ -30,7 +30,7 @@ const AppSidebar = () => {
               <div className="flex items-center gap-3 min-w-0">
                 <img src={logo} alt="SMS logo" className="w-8 h-8 object-contain rounded-md shrink-0" />
                 <span className="font-heading font-bold text-sm text-sidebar-foreground whitespace-nowrap truncate">
-                  University SMS
+                  GRGI University
                 </span>
               </div>
             )}

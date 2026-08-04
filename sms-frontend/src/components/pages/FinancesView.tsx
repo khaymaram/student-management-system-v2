@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import PageHeader from "../ui/PageHeader";
 import { Card } from "../ui/Card";
-import { CircleDollarSign, Star, AlertCircle, Wallet, HandCoins, Pencil } from "lucide-react";
+import { CircleDollarSign, Star, AlertCircle, Wallet, HandCoins, Pencil, CheckCircle2 } from "lucide-react";
 import { useFinances, useUpdateFinance } from "../../hooks/useFinances";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import { Badge } from "../ui/Badge";
@@ -263,13 +263,15 @@ export function FinancesView() {
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                variant="default"
+                                                variant={finance.remaining === 0 ? "outline" : "default"}
                                                 onClick={() => openPayModal(finance)}
                                                 //disable button is balance is 0
                                                 disabled={finance.remaining === 0}
-                                            >
-                                                <HandCoins size={14} />
-                                                Pay
+                                            >   
+                                            {finance.remaining > 0 ? 
+                                            <HandCoins size={14} /> : <CheckCircle2 size={14}/> }
+                                                {/* if balance is 0 change text of button to paid */}
+                                                {finance.remaining === 0 ? "Paid" : "Pay"}
                                             </Button>
                                         </div>
                                     </TableCell>

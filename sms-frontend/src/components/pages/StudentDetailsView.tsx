@@ -5,7 +5,7 @@
 // body: table with courses enrolled: id, title, course grade, unenroll from course button
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Trash2, Plus, HandCoins } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Plus, HandCoins, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { EnrollmentModal } from "./EnrollmentModal";
 import Modal from "../ui/Modal";
@@ -379,9 +379,14 @@ export default function StudentDetailsView() {
                         </Table>
 
                         <br></br>
-                        <Button type="button" onClick={() => openPayModal(finance)}>
-                            <HandCoins />
-                            Pay
+                        <Button 
+                        type="button" 
+                        variant={finance.remaining === 0 ? "outline" : "default"}
+                        onClick={() => openPayModal(finance)}
+                        disabled={finance.remaining === 0}>
+                            {finance.remaining > 0 ? 
+                                            <HandCoins /> : <CheckCircle2 /> }
+                            {finance.remaining === 0 ? "Paid" : "Pay"}
                         </Button>
                     </Card>
                     <Card padding={"responsive"}>

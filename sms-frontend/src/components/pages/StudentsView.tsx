@@ -27,6 +27,7 @@ import {
 } from "../../hooks/useStudents";
 
 import { apiErrorMessage } from "../../lib/axios";
+import { useMajors } from "../../hooks/useMajors";
 
 import {
   StudentInputSchema,
@@ -72,6 +73,7 @@ const emptyForm = {
   studentId: "",
   name: "",
   grade: "",
+  majorId: "",
 };
 
 export function StudentsView() {
@@ -132,6 +134,8 @@ export function StudentsView() {
 
   const updateStudent = useUpdateStudent();
 
+  const { data: majors = [], isLoading: majorsLoading } = useMajors();
+
   function handleDelete(student: Student) {
     if (!window.confirm(`Remove ${student.name} (ID ${student.studentId}) from the roster?`)) {
       return;
@@ -160,7 +164,7 @@ export function StudentsView() {
     setEditingStudent(student);
 
     setEditForm({
-      studentId: String(student.studentId), name: student.name, grade: String(student.grade),
+      studentId: String(student.studentId), name: student.name, grade: String(student.grade), majorId: String(student.majorId),
     });
 
     setEditFieldErrors({});
@@ -381,6 +385,7 @@ export function StudentsView() {
                   <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Grade</TableHead>
+                  <TableHead>Major</TableHead>
                   <TableHead>GPA</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -408,6 +413,8 @@ export function StudentsView() {
                     <TableCell className="font-medium">{student.name}</TableCell>
 
                     <TableCell>{student.grade}</TableCell>
+
+                    <TableCell>{student.major?.name ?? "Unknown"}</TableCell>
 
                     <TableCell>
                       {student.gpa === null ? (
@@ -540,9 +547,18 @@ export function StudentsView() {
             required
           />
 
-          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-            GPA is calculated automatically from the student's graded courses.
+          <div>
+            <label className="mb-2 block text-sm font-medium" htmlFor="add-major">
+              Major<span className="ml-1 text-destructive">*</span>
+            </label>
+            <Select value={addForm.majorId} onValueChange={(value) => handleAddFormChange("majorId", value)} disabled={majorsLoading}>
+              <SelectTrigger id="add-major" className="w-full" aria-required="true"><SelectValue placeholder={majorsLoading ? "Loading majors..." : "Select a major"} /></SelectTrigger>
+              <SelectContent>{majors.map((major) => <SelectItem key={major.id} value={String(major.id)}>{major.name}</SelectItem>)}</SelectContent>
+            </Select>
+            {addFieldErrors.majorId && <p className="mt-1 text-sm text-destructive">{addFieldErrors.majorId}</p>}
           </div>
+
+          
 
           <div className="flex justify-end gap-2 pt-2">
 
@@ -631,9 +647,18 @@ export function StudentsView() {
             required
           />
 
-          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-            GPA is calculated automatically from the grades earned in the student's courses and cannot be edited here.
+          <div>
+            <label className="mb-2 block text-sm font-medium" htmlFor="edit-major">
+              Major<span className="ml-1 text-destructive">*</span>
+            </label>
+            <Select value={editForm.majorId} onValueChange={(value) => handleEditFormChange("majorId", value)} disabled={majorsLoading}>
+              <SelectTrigger id="edit-major" className="w-full" aria-required="true"><SelectValue placeholder={majorsLoading ? "Loading majors..." : "Select a major"} /></SelectTrigger>
+              <SelectContent>{majors.map((major) => <SelectItem key={major.id} value={String(major.id)}>{major.name}</SelectItem>)}</SelectContent>
+            </Select>
+            {editFieldErrors.majorId && <p className="mt-1 text-sm text-destructive">{editFieldErrors.majorId}</p>}
           </div>
+
+          
 
           <div className="flex justify-end gap-2 pt-2">
 

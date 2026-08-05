@@ -10,9 +10,9 @@ import (
 
 type StudentRepository interface {
 	GetAll() ([]models.Student, error)
-	GetPaginated( page int, limit int, 
-		grade *int, honors bool, studentID *int, 
-		name string, ) ([]models.Student, int64, error)
+	GetPaginated(page int, limit int,
+		grade *int, honors bool, studentID *int,
+		name string) ([]models.Student, int64, error)
 	GetByID(id int) (*models.Student, error)
 	Create(student *models.Student) error
 	Update(student *models.Student) error
@@ -37,53 +37,53 @@ func (r *studentRepository) GetAll() ([]models.Student, error) {
 
 	var students []models.Student
 
-	err := r.db.Find(&students).Error
+	err := r.db.Preload("Major").Find(&students).Error
 
 	return students, err
 }
 
 func (r *studentRepository) GetPaginated(page int, limit int, grade *int, honors bool, studentID *int,
 	name string) ([]models.Student, int64, error) {
-		var students []models.Student
-		var total int64
-		query := r.db.Model(&models.Student{})
+	var students []models.Student
+	var total int64
+	query := r.db.Model(&models.Student{})
 
-		if grade != nil {
-			query = query.Where("grade = ?", *grade)
-		}
-
-		if honors {
-		query = query.Where("gpa >= ?", 3.5)
-		}
-
-		if studentID != nil {
-			query = query.Where("name LIKE ?", "%"+name+"%")
-		}
-
-		if err := query.Count(&total).Error; err != nil {
-			return nil, 0, err
-		}
-
-		offset := (page - 1) * limit
-
-		if err := query.
-			Order("id").
-			Offset(offset).
-			Limit(limit).
-			Find(&students).Error; err != nil {
-				return nil, 0, err
-		}
-
-		return students, total, nil
-
+	if grade != nil {
+		query = query.Where("grade = ?", *grade)
 	}
 
+	if honors {
+		query = query.Where("gpa >= ?", 3.5)
+	}
+
+	if studentID != nil {
+		query = query.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * limit
+
+	if err := query.
+		Preload("Major").
+		Order("id").
+		Offset(offset).
+		Limit(limit).
+		Find(&students).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return students, total, nil
+
+}
 
 func (r *studentRepository) GetByID(id int) (*models.Student, error) {
 
 	var student models.Student
 
-	err := r.db.First(&student, "id = ?", id).Error
+	err := r.db.Preload("Major").First(&student, "id = ?", id).Error
 
 	if err != nil {
 		return nil, err
@@ -99,7 +99,10 @@ func (r *studentRepository) Create(student *models.Student) error {
 }
 
 func (r *studentRepository) Update(student *models.Student) error {
-	return r.db.Save(student).Error
+	// Major may have been preloaded with the student's previous selection.
+	// Persist scalar fields (including major_id) without saving that stale
+	// association back over the newly selected foreign key.
+	return r.db.Omit("Major").Save(student).Error
 }
 
 func (r *studentRepository) Delete(id int) error {
@@ -112,6 +115,7 @@ func (r *studentRepository) Search(name string) ([]models.Student, error) {
 	var students []models.Student
 
 	err := r.db.
+		Preload("Major").
 		Where("name LIKE ?", "%"+name+"%").
 		Find(&students).Error
 
@@ -123,6 +127,7 @@ func (r *studentRepository) FilterByGrade(grade int) ([]models.Student, error) {
 	var students []models.Student
 
 	err := r.db.
+		Preload("Major").
 		Where("grade = ?", grade).
 		Find(&students).Error
 
@@ -134,6 +139,7 @@ func (r *studentRepository) GetHonors() ([]models.Student, error) {
 	var students []models.Student
 
 	err := r.db.
+		Preload("Major").
 		Where("gpa >= ?", 3.5).
 		Find(&students).Error
 

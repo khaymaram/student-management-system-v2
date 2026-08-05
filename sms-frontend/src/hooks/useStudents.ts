@@ -144,8 +144,9 @@ export function useUpdateStudent() {
         mutationFn: async ({ studentId, input }: { studentId: number; input: StudentInput}) => {
             return await put<string>(`/students/${studentId}`, input);
         },
-        onSuccess: () => {
+        onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({ queryKey: ["students"] });
+            queryClient.invalidateQueries({ queryKey: ["student", variables.studentId] });
         },
     });
 }

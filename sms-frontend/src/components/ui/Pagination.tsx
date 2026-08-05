@@ -46,16 +46,16 @@ export function Pagination({
   );
 
   return (
-    <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
 
-      <div className="text-sm text-muted-foreground">
-        Showing {start}-{end} of {totalCount} records
+      <div>
+        {start}-{end} of {totalCount}
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className="flex items-center gap-2">
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Rows per page</span>
+        <div className="flex items-center gap-1.5">
+          <span>Rows</span>
 
           <Select
             value={String(pageSize)}
@@ -65,7 +65,7 @@ export function Pagination({
               )
             }
           >
-            <SelectTrigger className="w-[80px]">
+            <SelectTrigger selectSize="sm" className="w-[60px]">
               <SelectValue />
             </SelectTrigger>
 
@@ -89,27 +89,30 @@ export function Pagination({
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
 
           <Button
             variant="outline"
             size="sm"
+            className="w-8 px-0"
+            aria-label="Previous page"
             onClick={() =>
               onPageChange(page - 1)
             }
             disabled={page <= 1}
           >
             <ChevronLeft />
-            Previous
           </Button>
 
-          <span className="min-w-20 text-center text-sm font-medium">
-            Page {page} of {safeTotalPages}
+          <span className="min-w-12 text-center font-medium text-foreground">
+            {page} / {safeTotalPages}
           </span>
 
           <Button
             variant="outline"
             size="sm"
+            className="w-8 px-0"
+            aria-label="Next page"
             onClick={() =>
               onPageChange(page + 1)
             }
@@ -117,7 +120,6 @@ export function Pagination({
               page >= safeTotalPages
             }
           >
-            Next
             <ChevronRight />
           </Button>
 

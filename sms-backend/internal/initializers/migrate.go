@@ -32,7 +32,12 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
+	if err := dropTableIfExists(db, &models.Major{}); err != nil {
+		return err
+	}
+
 	return db.AutoMigrate(
+		&models.Major{},
 		&models.Student{},
 		&models.Finance{},
 		&models.Professor{},

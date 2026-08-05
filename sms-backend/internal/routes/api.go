@@ -17,6 +17,7 @@ func Setup(
 	enrollmentHandler *handlers.EnrollmentHandler,
 	professorHandler *handlers.ProfessorHandler,
 	financeHandler *handlers.FinanceHandler,
+	majorHandler *handlers.MajorHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -38,6 +39,7 @@ func Setup(
 	// The frontend calls /api/students, /api/students/:id, and related routes.
 	api := router.Group("/api")
 	{
+		api.GET("/majors", majorHandler.GetAll)
 
 		enrollments := api.Group("/enrollments")
 		{

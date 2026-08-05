@@ -29,12 +29,14 @@ func main() {
 	enrollmentRepository := repositories.NewEnrollmentRepository(db)
 	studentRepository := repositories.NewStudentRepository(db)
 	financeRepository := repositories.NewFinanceRepository(db)
+	majorRepository := repositories.NewMajorRepository(db)
 
 	studentService :=
-		services.NewStudentService(studentRepository, enrollmentRepository, financeRepository)
+		services.NewStudentService(studentRepository, enrollmentRepository, financeRepository, majorRepository)
 
 	studentHandler :=
 		handlers.NewStudentHandler(studentService)
+	majorHandler := handlers.NewMajorHandler(majorRepository)
 
 	financeService :=
 		services.NewFinanceService(financeRepository)
@@ -73,6 +75,7 @@ func main() {
 			enrollmentHandler,
 			professorHandler,
 			financeHandler,
+			majorHandler,
 		)
 
 	err = router.Run(

@@ -19,7 +19,7 @@ type StudentService interface {
 	GetPaginated(
 		page int,
 		limit int,
-		grade *int, 
+		grade *int,
 		honors bool,
 		studentID *int,
 		name string,
@@ -44,14 +44,16 @@ type studentService struct {
 	repository           repositories.StudentRepository
 	enrollmentRepository repositories.EnrollmentRepository
 	financeRepository    repositories.FinanceRepository
+	majorRepository      repositories.MajorRepository
 }
 
-func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository, fRepo repositories.FinanceRepository) StudentService {
+func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository, fRepo repositories.FinanceRepository, mRepo repositories.MajorRepository) StudentService {
 
 	return &studentService{
 		repository:           repo,
 		enrollmentRepository: eRepo,
 		financeRepository:    fRepo,
+		majorRepository:      mRepo,
 	}
 }
 
@@ -79,7 +81,15 @@ func (s *studentService) GetByID(id int) (*models.Student, error) {
 func (s *studentService) Create(req dto.CreateStudentRequest) error {
 	// GPA is not accepted here because it is derived from course grades.
 
-	_, err := s.repository.GetByID(req.StudentID)
+	majorExists, err := s.majorRepository.Exists(req.MajorID)
+	if err != nil {
+		return err
+	}
+	if !majorExists {
+		return errors.New("selected major does not exist")
+	}
+
+	_, err = s.repository.GetByID(req.StudentID)
 
 	if err == nil {
 		return errors.New("student id already exists")
@@ -90,10 +100,11 @@ func (s *studentService) Create(req dto.CreateStudentRequest) error {
 	}
 
 	student := models.Student{
-		ID:    req.StudentID,
-		Name:  req.Name,
-		Grade: req.Grade,
-		GPA:   nil,
+		ID:      req.StudentID,
+		Name:    req.Name,
+		Grade:   req.Grade,
+		GPA:     nil,
+		MajorID: req.MajorID,
 	}
 
 	if err := s.repository.Create(&student); err != nil {
@@ -133,6 +144,17 @@ func (s *studentService) Update(
 
 	if req.Grade != 0 {
 		student.Grade = req.Grade
+	}
+
+	if req.MajorID != 0 {
+		majorExists, err := s.majorRepository.Exists(req.MajorID)
+		if err != nil {
+			return err
+		}
+		if !majorExists {
+			return errors.New("selected major does not exist")
+		}
+		student.MajorID = req.MajorID
 	}
 
 	return s.repository.Update(student)

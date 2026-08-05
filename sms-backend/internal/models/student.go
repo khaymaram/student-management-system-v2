@@ -15,6 +15,9 @@ type Student struct {
 	// GPA is a derived, credit-weighted value calculated from graded enrollments.
 	GPA *float64 `gorm:"column:gpa" json:"gpa"`
 
+	MajorID int    `gorm:"column:major_id;not null" json:"majorId"`
+	Major   *Major `gorm:"foreignKey:MajorID;references:ID" json:"major,omitempty"`
+
 	Finance *Finance `gorm:"foreignKey:StudentID;references:ID;constraint:OnDelete:CASCADE"`
 
 	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`

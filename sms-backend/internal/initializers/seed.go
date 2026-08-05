@@ -9,33 +9,44 @@ import (
 
 // Seed adds example student data for local development and testing.
 func Seed(db *gorm.DB) error {
+	majors := []models.Major{
+		{ID: 1, Name: "Undeclared"},
+		{ID: 2, Name: "Computer Science"},
+		{ID: 3, Name: "Mathematics"},
+		{ID: 4, Name: "Business Administration"},
+		{ID: 5, Name: "Biology"},
+		{ID: 6, Name: "English"},
+	}
+	if err := db.Create(&majors).Error; err != nil {
+		return err
+	}
 	students := []models.Student{
 		{
-			ID:    1122,
-			Name:  "Happy Birthday",
-			Grade: 1,
-			
+			ID:      1122,
+			Name:    "Happy Birthday",
+			Grade:   1,
+			MajorID: 1,
 		},
 	}
 	courses := []models.Course{
 		{
-			Title: "Linear Algebra",
-			Code: "MATH240",
+			Title:   "Linear Algebra",
+			Code:    "MATH240",
 			Credits: 4,
 		},
 		{
-			Title: "Intro to OOP",
-			Code: "CMSC131",
+			Title:   "Intro to OOP",
+			Code:    "CMSC131",
 			Credits: 4,
 		},
 		{
-			Title: "Calculus II",
-			Code: "MATH141",
+			Title:   "Calculus II",
+			Code:    "MATH141",
 			Credits: 4,
 		},
 		{
-			Title: "Organization of Programming Languages",
-			Code: "CMSC330",
+			Title:   "Organization of Programming Languages",
+			Code:    "CMSC330",
 			Credits: 3,
 		},
 	}

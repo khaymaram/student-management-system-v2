@@ -20,6 +20,12 @@ export const ProfessorInputSchema = z.object({
 });
 
 export type ProfessorInput = z.infer<typeof ProfessorInputSchema>;
+
+export const MajorSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+});
+export type Major = z.infer<typeof MajorSchema>;
 // StudentSchema describes the API response shape returned by the backend.
 export const StudentSchema = z.object({
     id: z.number().optional(),
@@ -27,6 +33,8 @@ export const StudentSchema = z.object({
     name: z.string(),
     grade: z.number(),
     gpa: z.number().nullable(),
+	majorId: z.number(),
+	major: MajorSchema.optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
 });
@@ -37,6 +45,7 @@ export const StudentInputSchema = z.object({
     studentId: z.coerce.number().int().positive("Student ID must be a positive number"),
     name: z.string().min(1, "Name is required").transform(value => capitalizeWords(value.trim())),
     grade: z.coerce.number().int().min(1, "Lowest grade level is 1").max(4, "Highest grade level is 4"),
+	majorId: z.coerce.number().int().positive("Major is required"),
 });
 export type StudentInput = z.infer<typeof StudentInputSchema>;
 

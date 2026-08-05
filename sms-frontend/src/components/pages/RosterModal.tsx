@@ -216,6 +216,7 @@ export function RosterModal({
             isOpen={!!course}
             onClose={onClose}
             title={`${course.title} Roster`}
+            size="lg"
         >
             <div className="space-y-4">
 

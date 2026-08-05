@@ -190,7 +190,7 @@ export default function StudentDetailsView() {
 
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
 
-                        <div>
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground">
                                 Courses Enrolled
                             </p>
@@ -199,7 +199,7 @@ export default function StudentDetailsView() {
                                 {enrollments?.length ?? 0}
                             </p>
                         </div>
-                        <div>
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground">
                                 Grade
                             </p>
@@ -210,7 +210,7 @@ export default function StudentDetailsView() {
 
                             </p>
                         </div>
-                        <div>
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground">
                                 Credits
                             </p>
@@ -221,7 +221,7 @@ export default function StudentDetailsView() {
                         </div>
 
 
-                        <div>
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground">
                                 GPA
                             </p>

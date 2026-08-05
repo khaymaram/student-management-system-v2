@@ -126,7 +126,7 @@ export default function CourseDetailsView() {
                     </h1>
 
                     <p className="text-lg text-muted-foreground font-mono">
-                        {course.code}
+                        {course.code} ({course.credits} credits)
                     </p>
 
                 </div>
@@ -136,28 +136,8 @@ export default function CourseDetailsView() {
             {!courseLoading && course && (
                 <Card padding="responsive">
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-
-                        <div>
-                            <p className="text-sm text-muted-foreground">
-                                Students Enrolled
-                            </p>
-                            <p className="mt-1 text-3xl font-bold">
-                                {enrollments?.length ?? 0}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-sm text-muted-foreground">
-                                Credits
-                            </p>
-
-                            <p className="mt-1 text-3xl font-bold">
-                                {course.credits}
-                            </p>
-                        </div>
-
-                        <div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground">
                                 Professor
                             </p>
@@ -169,7 +149,27 @@ export default function CourseDetailsView() {
                             </p>
                         </div>
 
-                        <div>
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">
+                                Students Enrolled
+                            </p>
+                            <p className="mt-1 text-3xl font-bold">
+                                {enrollments?.length ?? 0}
+                            </p>
+                        </div>
+                        
+                        {/* <div className="text-center">
+                            <p className="text-sm text-muted-foreground">
+                                Credits
+                            </p>
+
+                            <p className="mt-1 text-3xl font-bold">
+                                {course.credits}
+                            </p>
+                        </div> */}
+
+                        
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground">
                                 Average Grade
                             </p>

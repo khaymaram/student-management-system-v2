@@ -291,7 +291,7 @@ export function RosterModal({
                         className={`rounded-md border p-3 text-sm ${
                             exceedsCreditLimit
                                 ? "border-red-300 bg-red-50 text-red-700"
-                                : "border-border bg-muted/50 text-muted-foreground"
+                                : "border-border bg-muted/50 "
                         }`}
                     >
                         {studentEnrollmentsLoading ? (
@@ -326,7 +326,7 @@ export function RosterModal({
                                 {exceedsCreditLimit && (
                                     <p className="mt-2 font-medium">
                                         This student cannot be
-                                        enrolled because the
+                                        enrolled because their
                                         15-credit limit would be
                                         exceeded.
                                     </p>

@@ -350,7 +350,7 @@ export default function StudentDetailsView() {
 
             {/* Finances */}
             {finance && !financeLoading && student && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card padding={"responsive"}>
                         <div className="mb-6">
                             <h2 className="text-xl font-semibold">
@@ -624,11 +624,14 @@ function WeeklyCourseSchedule({ enrollments }: { enrollments: Enrollment[] }) {
     const courseAccents = new Map(
         [...new Set(enrollments.map((enrollment) => enrollment.courseCode))]
             .sort()
-            .map((courseCode, index) => [courseCode, rainbowAccents[index % rainbowAccents.length]])
+            .map((courseCode, index) => [
+                courseCode,
+                rainbowAccents[rainbowAccents.length - 1 - (index % rainbowAccents.length)],
+            ])
     );
 
     return (
-        <Card padding="responsive">
+        <Card padding="responsive" className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-2">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#1D4ED8]">
                     <CalendarClock className="size-4" />

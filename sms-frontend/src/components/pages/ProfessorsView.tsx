@@ -21,6 +21,7 @@ import {
 } from "../ui/Select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import { useCourses } from "@/hooks/useCourses";
+import { Link } from "react-router-dom";
 
 type FilterMode = "all" | "search" | "name";
 const emptyForm = { id: "", name: "" };
@@ -283,9 +284,11 @@ export function ProfessorsView() {
                         (
                             <TableRow key={professor.id}>
                                 <TableCell>
-                                    <Badge variant="outline" className="font-mono">
-                                        #{professor.id}
-                                    </Badge>
+                                    <Link to={`/professors/${professor.id}`}>
+                                        <Badge variant="outline" className="cursor-pointer font-mono transition-colors hover:bg-accent hover:text-accent-foreground">
+                                            #{professor.id}
+                                        </Badge>
+                                    </Link>
                                 </TableCell>
                                 <TableCell className="font-medium">{professor.name}</TableCell>
                                 <TableCell>

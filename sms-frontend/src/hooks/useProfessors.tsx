@@ -80,6 +80,14 @@ export function useProfessorsPaginated({
     });
 }
 
+export function useProfessor(id: string | null) {
+    return useQuery<Professor>({
+        queryKey: ["professor", id],
+        queryFn: () => get<Professor>(`/professors/${id}`),
+        enabled: !!id,
+    });
+}
+
 export function useCreateProfessor() {
     const queryClient = useQueryClient();
     // Send a POST request to create a student and refresh the student list on success.

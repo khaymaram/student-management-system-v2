@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
 	"sms-backend/internal/dto"
 	"sms-backend/internal/models"
@@ -79,11 +80,21 @@ func (c *courseService) Create(req dto.CreateCourseRequest) error {
 		return errors.New("invalid number of credits")
 	}
 
+	days, startTime, err := normalizeSchedule(req.MeetingDays, req.StartTime)
+	if err != nil {
+		return err
+	}
+
 	course := models.Course{
 		Title:       req.Title,
 		Code:        req.Code,
 		Credits:     req.Credits,
 		ProfessorID: req.ProfessorID,
+		MeetingDays: days,
+		StartTime:   startTime,
+	}
+	if err := c.ensureProfessorAvailable(&course); err != nil {
+		return err
 	}
 
 	return c.repository.Create(&course)
@@ -91,10 +102,10 @@ func (c *courseService) Create(req dto.CreateCourseRequest) error {
 
 func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 	course, err := c.repository.GetByCode(code)
-	oldCredits := course.Credits
 	if err != nil {
 		return err
 	}
+	oldCredits := course.Credits
 
 	if req.Title != "" {
 		course.Title = req.Title
@@ -105,6 +116,20 @@ func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 	}
 
 	course.ProfessorID = req.ProfessorID
+
+	days, startTime, err := normalizeSchedule(req.MeetingDays, req.StartTime)
+	if err != nil {
+		return err
+	}
+	course.MeetingDays = days
+	course.StartTime = startTime
+
+	if err := c.ensureProfessorAvailable(course); err != nil {
+		return err
+	}
+	if err := c.ensureEnrolledStudentsAvailable(course); err != nil {
+		return err
+	}
 
 	if err := c.repository.Update(course); err != nil {
 		return err
@@ -122,13 +147,49 @@ func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 
 		for _, enrollment := range enrollments {
 
-			if err := recalculateStudentGPA(enrollment.StudentID,c.studentRepository,c.enrollmentRepository,); err != nil {
+			if err := recalculateStudentGPA(enrollment.StudentID, c.studentRepository, c.enrollmentRepository); err != nil {
 				return err
 			}
 		}
 	}
 
 	return c.repository.Update(course)
+}
+
+func (c *courseService) ensureProfessorAvailable(course *models.Course) error {
+	if course.ProfessorID == nil || *course.ProfessorID == "" {
+		return nil
+	}
+	professorCourses, err := c.repository.GetByProfessor(*course.ProfessorID)
+	if err != nil {
+		return err
+	}
+	for i := range professorCourses {
+		other := &professorCourses[i]
+		if other.Code != course.Code && schedulesOverlap(course, other) {
+			return fmt.Errorf("professor has a schedule conflict with %s", other.Code)
+		}
+	}
+	return nil
+}
+
+func (c *courseService) ensureEnrolledStudentsAvailable(course *models.Course) error {
+	roster, err := c.enrollmentRepository.GetByCourse(course.Code)
+	if err != nil {
+		return err
+	}
+	for _, rosterEntry := range roster {
+		enrollments, err := c.enrollmentRepository.GetByStudent(rosterEntry.StudentID)
+		if err != nil {
+			return err
+		}
+		for _, enrollment := range enrollments {
+			if enrollment.Course != nil && enrollment.CourseCode != course.Code && schedulesOverlap(course, enrollment.Course) {
+				return fmt.Errorf("rescheduling conflicts with %s for student %d", enrollment.CourseCode, rosterEntry.StudentID)
+			}
+		}
+	}
+	return nil
 }
 
 func (c *courseService) Delete(code string) error {
@@ -153,7 +214,7 @@ func (c *courseService) Delete(code string) error {
 
 	for _, enrollment := range enrollments {
 
-		if err := recalculateStudentGPA(enrollment.StudentID,c.studentRepository,c.enrollmentRepository,); err != nil {
+		if err := recalculateStudentGPA(enrollment.StudentID, c.studentRepository, c.enrollmentRepository); err != nil {
 			return err
 		}
 	}

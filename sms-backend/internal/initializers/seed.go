@@ -30,24 +30,28 @@ func Seed(db *gorm.DB) error {
 	}
 	courses := []models.Course{
 		{
-			Title:   "Linear Algebra",
-			Code:    "MATH240",
-			Credits: 4,
+			Title:       "Linear Algebra",
+			Code:        "MATH240",
+			Credits:     4,
+			MeetingDays: []string{"M", "W"}, StartTime: "08:00",
 		},
 		{
-			Title:   "Intro to OOP",
-			Code:    "CMSC131",
-			Credits: 4,
+			Title:       "Intro to OOP",
+			Code:        "CMSC131",
+			Credits:     4,
+			MeetingDays: []string{"T", "Th"}, StartTime: "09:30",
 		},
 		{
-			Title:   "Calculus II",
-			Code:    "MATH141",
-			Credits: 4,
+			Title:       "Calculus II",
+			Code:        "MATH141",
+			Credits:     4,
+			MeetingDays: []string{"M", "W"}, StartTime: "11:00",
 		},
 		{
-			Title:   "Organization of Programming Languages",
-			Code:    "CMSC330",
-			Credits: 3,
+			Title:       "Organization of Programming Languages",
+			Code:        "CMSC330",
+			Credits:     3,
+			MeetingDays: []string{"T", "Th"}, StartTime: "13:00",
 		},
 	}
 	db.Create(&courses)

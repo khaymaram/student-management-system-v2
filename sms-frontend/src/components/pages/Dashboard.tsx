@@ -8,28 +8,116 @@ import { useStudents } from "../../hooks/useStudents";
 import { useCourses } from "../../hooks/useCourses";
 import { useProfessors } from "../../hooks/useProfessors";
 import { useAllEnrollments } from "../../hooks/useEnrollments";
-import { useFinances } from "@/hooks/useFinances";
 import { Badge } from "../ui/Badge";
 
 const rainbowAccents = [
-    { bg: '#FEE2E2', text: '#B91C1C' },
-    { bg: '#FFEDD5', text: '#C2410C' },
-    { bg: '#FEF3C7', text: '#B45309' },
-    { bg: '#DCFCE7', text: '#166534' },
-    { bg: '#DBEAFE', text: '#1D4ED8' },
-    { bg: '#EDE9FE', text: '#6D28D9' },
+    { bg: '#FEE2E2', chart: '#F15757', text: '#B91C1C' },
+    { bg: '#FFEDD5', chart: '#FA812D', text: '#C2410C' },
+    { bg: '#FEF3C7', chart: '#ECBB21', text: '#B45309' },
+    { bg: '#DCFCE7', chart: '#38CB6E', text: '#166534' },
+    { bg: '#DBEAFE', chart: '#4F8FF7', text: '#1D4ED8' },
+    { bg: '#EDE9FE', chart: '#976CF7', text: '#6D28D9' },
 ];
+
+interface MajorDistributionItem {
+    name: string;
+    count: number;
+    color: string;
+}
+
+function pieSlicePath(startPercent: number, endPercent: number) {
+    const point = (percent: number) => {
+        const angle = percent * Math.PI * 2 - Math.PI / 2;
+        return {
+            x: 50 + 48 * Math.cos(angle),
+            y: 50 + 48 * Math.sin(angle),
+        };
+    };
+
+    const start = point(startPercent);
+    const end = point(endPercent);
+    const largeArc = endPercent - startPercent > 0.5 ? 1 : 0;
+
+    return `M 50 50 L ${start.x} ${start.y} A 48 48 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
+}
+
+function MajorDistributionChart({ data, total }: { data: MajorDistributionItem[]; total: number }) {
+    if (total === 0) {
+        return (
+            <div className="flex min-h-64 items-center justify-center text-sm text-muted-foreground">
+                No student major data yet.
+            </div>
+        );
+    }
+
+    let cumulative = 0;
+
+    return (
+        <div className="flex flex-col items-center gap-5">
+            <svg
+                viewBox="0 0 100 100"
+                className="size-44 shrink-0 drop-shadow-sm"
+                role="img"
+                aria-label="Student distribution by major"
+            >
+                {data.map((item) => {
+                    const start = cumulative / total;
+                    cumulative += item.count;
+                    const end = cumulative / total;
+
+                    if (item.count === total) {
+                        return (
+                            <circle key={item.name} cx="50" cy="50" r="48" fill={item.color}>
+                                <title>{item.name}: {item.count} students (100%)</title>
+                            </circle>
+                        );
+                    }
+
+                    return (
+                        <path key={item.name} d={pieSlicePath(start, end)} fill={item.color} stroke="white" strokeWidth="1">
+                            <title>{item.name}: {item.count} students ({Math.round((item.count / total) * 100)}%)</title>
+                        </path>
+                    );
+                })}
+            </svg>
+
+            <div className="grid w-full gap-2">
+                {data.map((item) => (
+                    <div key={item.name} className="flex items-center gap-2 text-sm">
+                        <span className="size-3 shrink-0 rounded-sm" style={{ backgroundColor: item.color }} />
+                        <span className="min-w-0 flex-1 truncate" title={item.name}>{item.name}</span>
+                        <span className="font-medium tabular-nums">{item.count}</span>
+                        <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">
+                            {Math.round((item.count / total) * 100)}%
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 export function Dashboard() {
     const { data: students = [] } = useStudents();
     const { data: courses = [] } = useCourses();
     const { data: professors = [] } = useProfessors();
     const { data: enrollments = [] } = useAllEnrollments();
-    const { data: finances = [] } = useFinances();
 
     const totalStudents = students.length;
     const totalCourses = courses.length;
     const totalProfessors = professors.length;
+    const majorCounts = students.reduce<Record<string, number>>((counts, student) => {
+        const majorName = student.major?.name ?? "Unknown";
+        counts[majorName] = (counts[majorName] ?? 0) + 1;
+        return counts;
+    }, {});
+    const majorDistribution = Object.entries(majorCounts)
+        .sort(([, countA], [, countB]) => countB - countA)
+        .map(([name, count], index) => ({
+            name,
+            count,
+            color: rainbowAccents[index % rainbowAccents.length].chart,
+        }));
     const activeProfessors = new Set(
         courses
             .filter((course) => Boolean(course.professorId))
@@ -156,8 +244,16 @@ export function Dashboard() {
                     );
                 })}
             </div>
-            <div>
-                <Card padding="responsive">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <Card padding="responsive" className="lg:col-span-1">
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold">Majors</h2>
+                        <p className="mt-1 text-sm text-muted-foreground">Student distribution by declared major</p>
+                    </div>
+                    <MajorDistributionChart data={majorDistribution} total={totalStudents} />
+                </Card>
+
+                <Card padding="responsive" className="lg:col-span-2">
                     <div className="mb-6">
                         <h2 className="text-xl font-semibold">
                             Recent Actions

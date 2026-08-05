@@ -5,6 +5,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
 	"sms-backend/internal/dto"
 	"sms-backend/internal/models"
@@ -79,6 +80,9 @@ func (s *enrollmentService) Enroll(studentId int, req dto.CreateEnrollmentReques
 	currentCredits := 0
 	for _, enrollment := range studentEnrollments {
 		if enrollment.Course != nil {
+			if schedulesOverlap(course, enrollment.Course) {
+				return fmt.Errorf("course schedule conflicts with %s", enrollment.CourseCode)
+			}
 			currentCredits += enrollment.Course.Credits
 		}
 	}
@@ -95,9 +99,9 @@ func (s *enrollmentService) Enroll(studentId int, req dto.CreateEnrollmentReques
 	return s.repository.Create(&enrollment)
 }
 
-func (s *enrollmentService) Unenroll(studentId int,courseCode string,) error {
+func (s *enrollmentService) Unenroll(studentId int, courseCode string) error {
 
-	_, err := s.repository.GetByStudentAndCourse(studentId,courseCode,)
+	_, err := s.repository.GetByStudentAndCourse(studentId, courseCode)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -107,17 +111,16 @@ func (s *enrollmentService) Unenroll(studentId int,courseCode string,) error {
 		return err
 	}
 
-	if err := s.repository.Delete(studentId,courseCode,); err != nil {
+	if err := s.repository.Delete(studentId, courseCode); err != nil {
 		return err
 	}
 
-	return recalculateStudentGPA(studentId,s.studentRepository,s.repository,)
+	return recalculateStudentGPA(studentId, s.studentRepository, s.repository)
 }
 
-func (s *enrollmentService) UpdateGrade(studentId int,courseCode string,req dto.UpdateEnrollmentRequest,) error {
+func (s *enrollmentService) UpdateGrade(studentId int, courseCode string, req dto.UpdateEnrollmentRequest) error {
 
-	enrollment, err := s.repository.GetByStudentAndCourse(studentId,courseCode,
-	)
+	enrollment, err := s.repository.GetByStudentAndCourse(studentId, courseCode)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -133,7 +136,7 @@ func (s *enrollmentService) UpdateGrade(studentId int,courseCode string,req dto.
 		return err
 	}
 
-	return recalculateStudentGPA(studentId,s.studentRepository,s.repository,)
+	return recalculateStudentGPA(studentId, s.studentRepository, s.repository)
 }
 
 func (s *enrollmentService) GetAll() ([]models.Enrollment, error) {

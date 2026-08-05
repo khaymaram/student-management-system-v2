@@ -55,6 +55,8 @@ export const CourseSchema = z.object({
     credits: z.number(),
     professorId: z.string().nullable().optional(),
     professor: ProfessorSchema.optional(),
+	meetingDays: z.array(z.enum(["M", "T", "W", "Th", "F"])),
+	startTime: z.string(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
 });
@@ -74,6 +76,13 @@ export const CourseInputSchema = z.object({
         .int()
         .min(1)
         .max(4),
+
+	meetingDays: z.array(z.enum(["M", "T", "W", "Th", "F"]))
+		.min(1, "Select at least one meeting day"),
+
+	startTime: z.string()
+		.regex(/^(0[89]|1[0-6]):(00|30)$/, "Select a valid start time")
+		.refine(value => value !== "16:30", "The last class starts at 4:00 PM"),
 
     professorId: z
         .string()

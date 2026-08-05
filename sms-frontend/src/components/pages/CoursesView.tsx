@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { CalendarClock, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfessors } from "../../hooks/useProfessors";
-import { useCoursesPaginated, useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../../hooks/useCourses";
+import { useCoursesPaginated, useDeleteCourse, useUpdateCourses, useCreateCourse, type CourseFilter } from "../../hooks/useCourses";
 import { apiErrorMessage } from "../../lib/axios";
 import { CourseInputSchema, type Course, type CourseInput } from "../../types";
 import PageHeader from "../ui/PageHeader";
@@ -24,8 +24,45 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 
 type FilterMode = "all" | "credits" | "title" | "professorId" | "code";
 
+const WEEKDAYS = ["M", "T", "W", "Th", "F"] as const;
+const START_HOURS = Array.from({ length: 9 }, (_, index) => String(8 + index).padStart(2, "0"));
+
+function formatTime(value: string) {
+  const [hour, minute] = value.split(":").map(Number);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+function formatTimeAfterHour(value: string) {
+  const [hour, minute] = value.split(":").map(Number);
+  const total = hour * 60 + minute + 60;
+  return formatTime(`${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`);
+}
+
+function CourseSchedule({ course }: { course: Course }) {
+  return (
+    <div className="flex min-w-48 flex-col gap-1.5">
+      <div className="flex gap-1" aria-label={`Meets ${course.meetingDays.join(", ")}`}>
+        {course.meetingDays.map((day) => (
+          <span
+            key={day}
+            className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-[#DBEAFE] px-1.5 text-xs font-semibold text-[#1D4ED8]"
+          >
+            {day}
+          </span>
+        ))}
+      </div>
+      <span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
+        <CalendarClock className="size-3.5" />
+        {formatTime(course.startTime)} – {formatTimeAfterHour(course.startTime)}
+      </span>
+    </div>
+  );
+}
+
 export function CoursesView() {
-  const emptyForm = { title: "", credits: "", code: "", professorId: "", };
+  const emptyForm = { title: "", credits: "", code: "", professorId: "", meetingDays: [] as string[], startTime: "" };
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -80,12 +117,12 @@ export function CoursesView() {
     });
   }
 
-  function handleAddFormChange(field: keyof typeof addForm, value: string) {
+  function handleAddFormChange(field: keyof typeof addForm, value: string | string[]) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   }
   function handleEditFormChange(
     field: keyof typeof editForm,
-    value: string
+    value: string | string[]
   ) {
     setEditForm((prev) => ({
       ...prev,
@@ -101,6 +138,8 @@ export function CoursesView() {
       professorId: course.professorId ?? "",
       credits: String(course.credits),
       code: course.code,
+	  meetingDays: course.meetingDays,
+	  startTime: course.startTime,
     });
 
     setEditFieldErrors({});
@@ -314,6 +353,7 @@ export function CoursesView() {
                   <TableHead>Title</TableHead>
                   <TableHead>Professor</TableHead>
                   <TableHead>Credits</TableHead>
+				  <TableHead>Schedule</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -339,6 +379,7 @@ export function CoursesView() {
                       {course.professor?.name ?? "TBD"}
                     </TableCell>
                     <TableCell>{course.credits}</TableCell>
+					<TableCell><CourseSchedule course={course} /></TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -390,47 +431,39 @@ export function CoursesView() {
             required
           />
 
-          <Select
-            value={addForm.professorId || "NONE"}
-            onValueChange={(value) =>
-              handleAddFormChange(
-                "professorId",
-                value === "NONE" ? "" : value
-              )
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Professor" />
-            </SelectTrigger>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="add-course-professor" className="mb-2 block text-sm font-medium text-foreground/80">
+                Professor
+              </label>
+              <Select
+                value={addForm.professorId || "NONE"}
+                onValueChange={(value) => handleAddFormChange("professorId", value === "NONE" ? "" : value)}
+              >
+                <SelectTrigger id="add-course-professor" className="w-full">
+                  <SelectValue placeholder="Select Professor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">No Professor</SelectItem>
+                  {professors?.map((professor) => (
+                    <SelectItem key={professor.id} value={professor.id}>
+                      {professor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <SelectContent>
-
-              <SelectItem value="NONE">
-                No Professor
-              </SelectItem>
-
-              {professors?.map((professor) => (
-                <SelectItem
-                  key={professor.id}
-                  value={professor.id}
-                >
-                  {professor.name}
-                </SelectItem>
-              ))}
-
-            </SelectContent>
-
-          </Select>
-
-          <Input
-            label="Credits"
-            id="add-course-credits"
-            inputMode="numeric"
-            value={addForm.credits}
-            onChange={(e) => handleAddFormChange("credits", e.target.value)}
-            error={addFieldErrors.credits}
-            required
-          />
+            <Input
+              label="Credits"
+              id="add-course-credits"
+              inputMode="numeric"
+              value={addForm.credits}
+              onChange={(e) => handleAddFormChange("credits", e.target.value)}
+              error={addFieldErrors.credits}
+              required
+            />
+          </div>
 
           <Input
             label="Course Code"
@@ -440,6 +473,16 @@ export function CoursesView() {
             error={addFieldErrors.code}
             required
           />
+
+		  <ScheduleFields
+			fieldId="add-course"
+			meetingDays={addForm.meetingDays}
+			startTime={addForm.startTime}
+			onDaysChange={(days) => handleAddFormChange("meetingDays", days)}
+			onTimeChange={(time) => handleAddFormChange("startTime", time)}
+			daysError={addFieldErrors.meetingDays}
+			timeError={addFieldErrors.startTime}
+		  />
 
 
 
@@ -475,47 +518,48 @@ export function CoursesView() {
             required
           />
 
-          <Select
-            value={editForm.professorId || "NONE"}
-            onValueChange={(value) =>
-              handleEditFormChange(
-                "professorId",
-                value === "NONE" ? "" : value
-              )
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Professor" />
-            </SelectTrigger>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="edit-course-professor" className="mb-2 block text-sm font-medium text-foreground/80">
+                Professor
+              </label>
+              <Select
+                value={editForm.professorId || "NONE"}
+                onValueChange={(value) => handleEditFormChange("professorId", value === "NONE" ? "" : value)}
+              >
+                <SelectTrigger id="edit-course-professor" className="w-full">
+                  <SelectValue placeholder="Select Professor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">No Professor</SelectItem>
+                  {professors?.map((professor) => (
+                    <SelectItem key={professor.id} value={professor.id}>
+                      {professor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <SelectContent>
-              <SelectItem value="NONE">
-                No Professor
-              </SelectItem>
+            <Input
+              label="Credits"
+              inputMode="numeric"
+              value={editForm.credits}
+              onChange={(e) => handleEditFormChange("credits", e.target.value)}
+              error={editFieldErrors.credits}
+              required
+            />
+          </div>
 
-              {professors?.map((professor) => (
-                <SelectItem
-                  key={professor.id}
-                  value={professor.id}
-                >
-                  {professor.name}
-                </SelectItem>
-
-              ))}
-            </SelectContent>
-
-          </Select>
-
-          <Input
-            label="Credits"
-            inputMode="numeric"
-            value={editForm.credits}
-            onChange={(e) =>
-              handleEditFormChange("credits", e.target.value)
-            }
-            error={editFieldErrors.credits}
-            required
-          />
+		  <ScheduleFields
+			fieldId="edit-course"
+			meetingDays={editForm.meetingDays}
+			startTime={editForm.startTime}
+			onDaysChange={(days) => handleEditFormChange("meetingDays", days)}
+			onTimeChange={(time) => handleEditFormChange("startTime", time)}
+			daysError={editFieldErrors.meetingDays}
+			timeError={editFieldErrors.startTime}
+		  />
 
 
           <div className="flex justify-end gap-2 pt-2">
@@ -539,6 +583,122 @@ export function CoursesView() {
         </form>
       </Modal>
     </div>
+  );
+}
+
+function ScheduleFields({
+  fieldId,
+  meetingDays,
+  startTime,
+  onDaysChange,
+  onTimeChange,
+  daysError,
+  timeError,
+}: {
+  fieldId: string;
+  meetingDays: string[];
+  startTime: string;
+  onDaysChange: (days: string[]) => void;
+  onTimeChange: (time: string) => void;
+  daysError?: string;
+  timeError?: string;
+}) {
+  const [selectedHour = "", selectedMinute = ""] = startTime.split(":");
+
+  function toggleDay(day: string) {
+    onDaysChange(
+      meetingDays.includes(day)
+        ? meetingDays.filter((selected) => selected !== day)
+        : WEEKDAYS.filter((weekday) => [...meetingDays, day].includes(weekday))
+    );
+  }
+
+  return (
+    <section className="rounded-xl border border-border/80  p-4">
+      <div className="mb-4 flex items-start gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#1D4ED8]">
+          <CalendarClock className="size-4" />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold">Class Schedule</h3>
+          <p className="text-xs text-muted-foreground">Each meeting lasts one hour.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <span className="mb-2 block text-sm font-medium text-foreground/80">
+            Meeting Days<span className="ml-1 text-destructive">*</span>
+          </span>
+          <div className="grid grid-cols-5 gap-1.5">
+            {WEEKDAYS.map((day) => {
+              const selected = meetingDays.includes(day);
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  className={`h-10 min-w-0 rounded-lg border px-0 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    selected
+                      ? "border-[#1D4ED8] bg-[#DBEAFE] text-[#1D4ED8] shadow-sm"
+                      : "border-input bg-background text-muted-foreground hover:border-[#83A4E9] hover:bg-[#DBEAFE]/50 hover:text-[#1D4ED8]"
+                  }`}
+                  aria-pressed={selected}
+                  onClick={() => toggleDay(day)}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+          {daysError && <p className="mt-1.5 text-sm text-destructive">{daysError}</p>}
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground/80" htmlFor={`${fieldId}-time`}>
+            Start Time<span className="ml-1 text-destructive">*</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedHour}
+              onValueChange={(hour) => onTimeChange(`${hour}:${hour === "16" ? "00" : selectedMinute || "00"}`)}
+            >
+              <SelectTrigger id={`${fieldId}-time`} className="flex-1 bg-background" aria-required="true">
+                <SelectValue placeholder="Hour" />
+              </SelectTrigger>
+              <SelectContent>
+                {START_HOURS.map((hour) => (
+                  <SelectItem key={hour} value={hour}>
+                    {Number(hour) > 12 ? Number(hour) - 12 : Number(hour)} {Number(hour) >= 12 ? "PM" : "AM"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <span className="font-semibold text-muted-foreground">:</span>
+
+            <Select
+              value={selectedMinute}
+              onValueChange={(minute) => selectedHour && onTimeChange(`${selectedHour}:${minute}`)}
+              disabled={!selectedHour || selectedHour === "16"}
+            >
+              <SelectTrigger className="w-24 bg-background" aria-label="Start time minutes">
+                <SelectValue placeholder="Min" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="00">00</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {startTime && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {formatTime(startTime)} – {formatTimeAfterHour(startTime)}
+            </p>
+          )}
+          {timeError && <p className="mt-1.5 text-sm text-destructive">{timeError}</p>}
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -120,15 +120,10 @@ func (r *courseRepository) Create(course *models.Course) error {
 }
 
 func (r *courseRepository) Update(course *models.Course) error {
-	updates := map[string]interface{}{
-		"title":        course.Title,
-		"credits":      course.Credits,
-		"professor_id": course.ProfessorID,
-	}
-
 	return r.db.Model(&models.Course{}).
 		Where("LOWER(code) = LOWER(?)", course.Code).
-		Updates(updates).Error
+		Select("Title", "Credits", "ProfessorID", "MeetingDays", "StartTime").
+		Updates(course).Error
 }
 
 func (r *courseRepository) Delete(code string) error {

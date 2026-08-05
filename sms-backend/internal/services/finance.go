@@ -13,6 +13,8 @@ type FinanceService interface {
 	GetFinance(studentID int) (*dto.FinanceResponse, error)
 
 	UpdateFinance(studentID int, req dto.UpdateFinanceRequest) error
+
+	GetPaginated(page int, limit int)([]dto.FinanceResponse, int64, error)
 }
 
 const (
@@ -28,6 +30,49 @@ func NewFinanceService(repo repositories.FinanceRepository) FinanceService {
 	return &financeService{
 		repo: repo,
 	}
+}
+
+func (s *financeService) GetPaginated(
+	page int,
+	limit int,
+) ([]dto.FinanceResponse, int64, error) {
+
+	finances, total, err := s.repo.GetPaginated(page, limit)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	responses := make([]dto.FinanceResponse, 0, len(finances))
+
+	for _, finance := range finances {
+
+		studentName := ""
+
+		if finance.Student != nil {
+			studentName = finance.Student.Name
+		}
+
+		remaining := finance.Tuition -
+			finance.Scholarship -
+			finance.Paid
+
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		responses = append(responses, dto.FinanceResponse{
+			StudentID:   finance.StudentID,
+			StudentName: studentName,
+			Tuition:     finance.Tuition,
+			Scholarship: finance.Scholarship,
+			Paid:        finance.Paid,
+			IsInState:   finance.IsInState,
+			Remaining:   remaining,
+		})
+	}
+
+	return responses, total, nil
 }
 
 func (s *financeService) GetAllFinances() ([]dto.FinanceResponse, error) {

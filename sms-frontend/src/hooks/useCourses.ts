@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { api, get, post } from "../lib/axios"
 import type { Course, CourseInput } from "../types";
 
@@ -9,6 +9,56 @@ export type CourseFilter =
     | { type: "title"; title: string }
     | { type: "professorId"; professorId: string }
     | { type: "code"; code: string };
+
+export interface CoursePaginationOptions {
+  page: number;
+  pageSize: number;
+  filter: CourseFilter;
+}
+
+export interface PaginatedCourses {
+  data: Course[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export function useCoursesPaginated({
+    page, pageSize, filter,
+}: CoursePaginationOptions) {
+    return useQuery<PaginatedCourses>({
+        queryKey:["courses", "paginated", page, pageSize, filter,],
+
+        queryFn: async () => {
+            const params = new URLSearchParams();
+
+            params.set("page", String(page));
+            params.set("limit", String(pageSize));
+
+            switch (filter.type) {
+                case "credits":
+                    params.set("credits", String(filter.credits)); 
+                    break;
+                case "title":
+                    params.set("title", filter.title);
+                    break;
+                case "code":
+                    params.set("code", filter.code);
+                    break;
+                case "professorId":
+                    params.set("professorId", filter.professorId);
+                    break;
+                case "all":
+                    break;
+            }
+            return await get<PaginatedCourses>(
+                `courses?${params.toString()}`
+            );
+        },
+        placeholderData: keepPreviousData,
+    });
+}
 
 export function useCourses(filter: CourseFilter = { type: "all" }) {
     // React Query fetches courses from the backend and caches the result.

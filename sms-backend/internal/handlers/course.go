@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math"
 	"net/http"
 	"strconv"
 
@@ -43,46 +44,138 @@ func NewCourseHandler(service services.CourseService) *CourseHandler {
 // 	)
 // }
 func (h *CourseHandler) GetAll(c *gin.Context) {
+	// Determine whether this is a paginated request.
+	// The normal frontend useCourses() hook calls /courses without
+	// page/limit and expects a plain []Course.
+	//
+	// The paginated frontend useCoursesPaginated() hook sends
+	// page and limit and expects the paginated response object.
 
-    professorId := c.Query("professorId")
+	pageValue := c.Query("page")
+	limitValue := c.Query("limit")
 
-    if professorId != "" {
+	// ---------------------------------------------------------
+	// NORMAL / NON-PAGINATED REQUEST
+	// GET /courses
+	// GET /courses?professorId=123
+	// ---------------------------------------------------------
+	if pageValue == "" && limitValue == "" {
+		professorID := c.Query("professorId")
 
-        courses, err := h.service.GetByProfessor(professorId)
+		// Preserve the existing professor filter behavior.
+		if professorID != "" {
+			courses, err := h.service.GetByProfessor(professorID)
 
-        if err != nil {
-            helpers.ErrorResponse(
-                c,
-                http.StatusInternalServerError,
-                err.Error(),
-            )
-            return
-        }
+			if err != nil {
+				helpers.ErrorResponse(
+					c,
+					http.StatusInternalServerError,
+					err.Error(),
+				)
+				return
+			}
 
-        helpers.SuccessResponse(
-            c,
-            http.StatusOK,
-            courses,
-        )
-        return
-    }
+			helpers.SuccessResponse(
+				c,
+				http.StatusOK,
+				courses,
+			)
+			return
+		}
 
-    courses, err := h.service.GetAll()
+		// Normal request for all courses.
+		courses, err := h.service.GetAll()
 
-    if err != nil {
-        helpers.ErrorResponse(
-            c,
-            http.StatusInternalServerError,
-            err.Error(),
-        )
-        return
-    }
+		if err != nil {
+			helpers.ErrorResponse(
+				c,
+				http.StatusInternalServerError,
+				err.Error(),
+			)
+			return
+		}
 
-    helpers.SuccessResponse(
-        c,
-        http.StatusOK,
-        courses,
-    )
+		helpers.SuccessResponse(
+			c,
+			http.StatusOK,
+			courses,
+		)
+
+		return
+	}
+
+	// ---------------------------------------------------------
+	// PAGINATED REQUEST
+	// GET /courses?page=1&limit=10
+	// ---------------------------------------------------------
+
+	page := 1
+	limit := 5
+
+	if pageValue != "" {
+		parsed, err := strconv.Atoi(pageValue)
+
+		if err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+
+	if limitValue != "" {
+		parsed, err := strconv.Atoi(limitValue)
+
+		if err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	code := c.Query("code")
+	title := c.Query("title")
+	professorID := c.Query("professorId")
+
+	var credits *int
+
+	if value := c.Query("credits"); value != "" {
+		parsed, err := strconv.Atoi(value)
+
+		if err == nil {
+			credits = &parsed
+		}
+	}
+
+	courses, total, err := h.service.GetPaginated(
+		page,
+		limit,
+		code,
+		title,
+		credits,
+		professorID,
+	)
+
+	if err != nil {
+		helpers.ErrorResponse(
+			c,
+			http.StatusInternalServerError,
+			err.Error(),
+		)
+		return
+	}
+
+	totalPages := int(
+		math.Ceil(
+			float64(total)/float64(limit),
+		),
+	)
+
+	c.JSON(
+		http.StatusOK,
+		gin.H{
+			"data":       courses,
+			"page":       page,
+			"pageSize":   limit,
+			"total":      total,
+			"totalPages": totalPages,
+		},
+	)
 }
 func (h *CourseHandler) GetByProfessor(c *gin.Context) {
 

@@ -12,6 +12,7 @@ type financeRepository struct {
 
 type FinanceRepository interface {
 	GetAll() ([]models.Finance, error)
+	GetPaginated(page int, limit int) ([]models.Finance, int64, error)
 	Create(finance *models.Finance) error
 	GetByStudentID(studentID int) (*models.Finance, error)
 	Update(finance *models.Finance) error
@@ -22,6 +23,27 @@ func NewFinanceRepository(db *gorm.DB) FinanceRepository {
 	return &financeRepository{
 		db: db,
 	}
+}
+
+func (r *financeRepository) GetPaginated(page int, limit int)([]models.Finance, int64, error){
+	var finances []models.Finance
+	var total int64
+	query := r.db.Model(&models.Finance{})
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * limit
+
+	if err := query.Preload("Student").
+		Order("student_id").
+		Offset(offset).
+		Limit(limit).
+		Find(&finances).Error; err != nil {
+			return nil, 0, err
+		}
+	return finances, total, nil
 }
 
 func (r *financeRepository) GetAll() ([]models.Finance, error) {

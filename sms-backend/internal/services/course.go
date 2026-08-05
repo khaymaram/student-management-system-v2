@@ -15,6 +15,8 @@ type CourseService interface {
 	GetByCode(code string) (*models.Course, error)
 	GetByProfessor(professorId string) ([]models.Course, error)
 
+	GetPaginated(page int, limit int, code string, title string, credits *int, professorId string)([]models.Course, int64, error)
+
 	Create(dto.CreateCourseRequest) error
 
 	Update(code string, req dto.UpdateCourseRequest) error
@@ -38,6 +40,13 @@ func NewCourseService(repo repositories.CourseRepository, eRepo repositories.Enr
 		enrollmentRepository: eRepo,
 	}
 }
+
+func (c *courseService) GetPaginated(
+	page int, limit int, code string, title string, credits *int, professorId string,
+) ([]models.Course, int64, error){
+	return c.repository.GetPaginated(page, limit, code, title, credits, professorId,)
+}
+
 func (c *courseService) GetByProfessor(professorId string) ([]models.Course, error) {
 	return c.repository.GetByProfessor(professorId)
 }

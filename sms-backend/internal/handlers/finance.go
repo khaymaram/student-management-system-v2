@@ -22,13 +22,89 @@ func NewFinanceHandler(service services.FinanceService) *FinanceHandler {
 }
 
 func (h *FinanceHandler) GetAll(c *gin.Context) {
-	finances, err := h.service.GetAllFinances()
-	if err != nil {
-		helpers.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	pageParam := c.Query("page")
+	limitParam := c.Query("limit")
+
+	// Keep the original non-paginated endpoint behavior.
+	if pageParam == "" && limitParam == "" {
+		finances, err := h.service.GetAllFinances()
+
+		if err != nil {
+			helpers.ErrorResponse(
+				c,
+				http.StatusInternalServerError,
+				err.Error(),
+			)
+			return
+		}
+
+		helpers.SuccessResponse(
+			c,
+			http.StatusOK,
+			finances,
+		)
 		return
 	}
 
-	helpers.SuccessResponse(c, http.StatusOK, finances)
+	page := 1
+	limit := 5
+
+	if pageParam != "" {
+		parsedPage, err := strconv.Atoi(pageParam)
+
+		if err != nil || parsedPage < 1 {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"page must be a positive integer",
+			)
+			return
+		}
+
+		page = parsedPage
+	}
+
+	if limitParam != "" {
+		parsedLimit, err := strconv.Atoi(limitParam)
+
+		if err != nil || parsedLimit < 1 || parsedLimit > 100 {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"limit must be between 1 and 100",
+			)
+			return
+		}
+
+		limit = parsedLimit
+	}
+
+	finances, total, err := h.service.GetPaginated(page, limit)
+
+	if err != nil {
+		helpers.ErrorResponse(
+			c,
+			http.StatusInternalServerError,
+			err.Error(),
+		)
+		return
+	}
+
+	totalPages := (total + int64(limit) - 1) / int64(limit)
+
+	response := dto.PaginationResponse[dto.FinanceResponse]{
+		Data:       finances,
+		Page:       page,
+		PageSize:   limit,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
+	helpers.SuccessResponse(
+		c,
+		http.StatusOK,
+		response,
+	)
 }
 
 func (h *FinanceHandler) Get(c *gin.Context) {

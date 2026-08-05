@@ -11,6 +11,7 @@ import (
 type CourseRepository interface {
 	GetByProfessor(professorId string) ([]models.Course, error)
 	GetAll() ([]models.Course, error)
+	GetPaginated(page int, limit int, code string, title string, credits *int, professorId string) ([]models.Course, int64, error)
 	GetByCode(code string) (*models.Course, error)
 	Create(student *models.Course) error
 	Update(student *models.Course) error
@@ -31,6 +32,46 @@ func NewCourseRepository(db *gorm.DB) CourseRepository {
 		db: db,
 	}
 }
+
+func (r *courseRepository) GetPaginated(page int, limit int, code string, title string, credits *int, professorId string) ([]models.Course, int64, error) {
+	var courses []models.Course
+	var total int64
+
+	query := r.db.Model(&models.Course{})
+
+	if credits != nil {
+		query = query.Where("credits = ?", *credits)
+	}
+
+	if title != "" {
+		query = query.Where("title LIKE ?", "%"+title+"%")
+	}
+	if code != "" {
+		query = query.Where("code LIKE ?", "%"+code+"%")
+	}
+	if professorId != "" {
+		query = query.Where("professor_id = ?", professorId)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * limit
+
+	if err := query.
+		Preload("Professor").
+		Order("code ASC").
+		Limit(limit).
+		Offset(offset).
+		Find(&courses).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return courses, total, nil
+
+}
+
 func (r *courseRepository) UnassignProfessor(professorId string) error {
 
 	return r.db.

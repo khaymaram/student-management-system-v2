@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import PageHeader from "../ui/PageHeader";
 import { Card } from "../ui/Card";
-import { CircleDollarSign, AlertCircle, Wallet, HandCoins, Pencil, CheckCircle2, Award} from "lucide-react";
-import { useFinances, useUpdateFinance } from "../../hooks/useFinances";
+import { CircleDollarSign, AlertCircle, Wallet, HandCoins, Pencil, CheckCircle2, Award } from "lucide-react";
+import { useFinances, useUpdateFinance, useFinancesPaginated } from "../../hooks/useFinances";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -11,8 +11,9 @@ import Modal from "../ui/Modal";
 import Input from "../ui/Input";
 import { apiErrorMessage } from "../../lib/axios";
 import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "../ui/Select";
+import { Pagination } from "../ui/Pagination";
 const rainbowAccents = [
     { bg: '#FEE2E2', text: '#B91C1C' },
     { bg: '#FFEDD5', text: '#C2410C' },
@@ -36,8 +37,19 @@ function formatToK(value: number): string {
 }
 
 
+
 export function FinancesView() {
-    const { data: finances = [], isLoading, isError } = useFinances();
+
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
+    useEffect(() => {
+        setPage(1);
+    }, [])
+    const { data, isLoading, isFetching, isError } = useFinancesPaginated({ page, pageSize, });
+    const finances = data?.data ?? [];
+    const {data: allFinances = [],} = useFinances();
+    const totalPages = data?.totalPages ?? 1;
+    const totalCount = data?.total ?? 0;
     const updateFinance = useUpdateFinance();
 
     const [editingFinance, setEditingFinance] = useState<{
@@ -57,13 +69,13 @@ export function FinancesView() {
     const [editResidency, setEditResidency] = useState(true);
     const [paymentAmount, setPaymentAmount] = useState("");
 
-    const totalOutstanding = finances.reduce((sum, finance) => sum + finance.remaining, 0);
-    const totalScholarships = finances.reduce((sum, finance) => sum + finance.scholarship, 0);
+    const totalOutstanding = allFinances.reduce((sum, finance) => sum + finance.remaining, 0);
+    const totalScholarships = allFinances.reduce((sum, finance) => sum + finance.scholarship, 0);
 
     const stats = [
         {
             label: 'Total Fees',
-            value: formatToK(finances.reduce((sum, finance) => sum + finance.tuition, 0)),
+            value: formatToK(allFinances.reduce((sum, finance) => sum + finance.tuition, 0)),
             icon: CircleDollarSign,
             accent: rainbowAccents[3],
         },
@@ -196,93 +208,105 @@ export function FinancesView() {
                     <Wallet className="text-muted-foreground" size={18} />
                     <h2 className="text-xl font-semibold">Student Financial Records</h2>
                 </div>
-
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Student</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead>Scholarship</TableHead>
-                            <TableHead>Paid</TableHead>
-                            <TableHead>Balance</TableHead>
-                            <TableHead>Residency</TableHead>
-                            <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
+                <div className={isFetching ? "opacity-70 transition-opacity" : undefined}>
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                                    Loading finances...
-                                </TableCell>
+                                <TableHead>Student</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Scholarship</TableHead>
+                                <TableHead>Paid</TableHead>
+                                <TableHead>Balance</TableHead>
+                                <TableHead>Residency</TableHead>
+                                <TableHead>Actions</TableHead>
                             </TableRow>
-                        ) : isError ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                                    Unable to load finance records.
-                                </TableCell>
-                            </TableRow>
-                        ) : finances.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                                    No finance records found.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            finances.map((finance) => (
-                                <TableRow key={finance.studentId} style={{ backgroundColor: finance.remaining === 0 ? '#DCFCE7' : undefined }}>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">#{finance.studentId}</span>
-                                            <span className="text-muted-foreground text-xs">{finance.studentName ?? "Unknown student"}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{currency.format(finance.tuition)}</TableCell>
-                                    <TableCell>{currency.format(finance.scholarship)}</TableCell>
-                                    <TableCell>{currency.format(finance.paid)}</TableCell>
-                                    <TableCell>
-                                        {currency.format(finance.remaining)}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            className="px-2 py-1 text-xs"
-                                            style={{
-                                                backgroundColor: finance.isInState ? rainbowAccents[4].bg : rainbowAccents[5].bg,
-                                                color: finance.isInState ? rainbowAccents[4].text : rainbowAccents[5].text,
-                                            }}
-                                        >
-                                            {finance.isInState ? "In-state" : "Out-of-state"}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => openEditFinanceModal(finance)}
-                                            >
-                                                <Pencil size={14} />
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant={finance.remaining <= 0 ? "outline" : "default"}
-                                                onClick={() => openPayModal(finance)}
-                                                //disable button if balance is 0
-                                                disabled={finance.remaining <= 0}
-                                            >
-                                                {finance.remaining > 0 ?
-                                                    <HandCoins size={14} /> : <CheckCircle2 size={14} />}
-                                                {/* if balance is 0 change text of button to paid */}
-                                                {finance.remaining <= 0 ? "Paid" : "Pay"}
-                                            </Button>
-                                        </div>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                                        Loading finances...
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : isError ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                                        Unable to load finance records.
+                                    </TableCell>
+                                </TableRow>
+                            ) : finances.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                                        No finance records found.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                finances.map((finance) => (
+                                    <TableRow key={finance.studentId} style={{ backgroundColor: finance.remaining === 0 ? '#DCFCE7' : undefined }}>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">#{finance.studentId}</span>
+                                                <span className="text-muted-foreground text-xs">{finance.studentName ?? "Unknown student"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{currency.format(finance.tuition)}</TableCell>
+                                        <TableCell>{currency.format(finance.scholarship)}</TableCell>
+                                        <TableCell>{currency.format(finance.paid)}</TableCell>
+                                        <TableCell>
+                                            {currency.format(finance.remaining)}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className="px-2 py-1 text-xs"
+                                                style={{
+                                                    backgroundColor: finance.isInState ? rainbowAccents[4].bg : rainbowAccents[5].bg,
+                                                    color: finance.isInState ? rainbowAccents[4].text : rainbowAccents[5].text,
+                                                }}
+                                            >
+                                                {finance.isInState ? "In-state" : "Out-of-state"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => openEditFinanceModal(finance)}
+                                                >
+                                                    <Pencil size={14} />
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant={finance.remaining <= 0 ? "outline" : "default"}
+                                                    onClick={() => openPayModal(finance)}
+                                                    //disable button if balance is 0
+                                                    disabled={finance.remaining <= 0}
+                                                >
+                                                    {finance.remaining > 0 ?
+                                                        <HandCoins size={14} /> : <CheckCircle2 size={14} />}
+                                                    {/* if balance is 0 change text of button to paid */}
+                                                    {finance.remaining <= 0 ? "Paid" : "Pay"}
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    totalCount={totalCount}
+                    onPageChange={setPage}
+                    onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        setPage(1);
+                    }}
+                />
             </Card>
 
             <Modal isOpen={!!editingFinance} onClose={closeEditFinanceModal} title="Edit Finance">
@@ -301,13 +325,13 @@ export function FinancesView() {
                             onValueChange={(event) => setEditResidency(event === "in-state")}
                         >
                             <SelectTrigger>
-                                 <SelectValue placeholder="Select Residency" />
+                                <SelectValue placeholder="Select Residency" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="in-state">In-state</SelectItem>
-                            <SelectItem value="out-of-state">Out-of-state</SelectItem>
+                                <SelectItem value="out-of-state">Out-of-state</SelectItem>
                             </SelectContent>
-                            
+
                         </Select>
                     </div>
 

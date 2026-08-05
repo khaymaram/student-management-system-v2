@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfessors } from "../../hooks/useProfessors";
-import { useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../../hooks/useCourses";
+import { useCoursesPaginated, useDeleteCourse, useCourses, useUpdateCourses, useCreateCourse, type CourseFilter } from "../../hooks/useCourses";
 import { apiErrorMessage } from "../../lib/axios";
 import { CourseInputSchema, type Course, type CourseInput } from "../../types";
 import PageHeader from "../ui/PageHeader";
@@ -11,6 +11,7 @@ import { Button } from "../ui/Button";
 import Input from "../ui/Input";
 import Modal from "../ui/Modal";
 import { Badge } from "../ui/Badge";
+import { Pagination } from "../ui/Pagination";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -25,6 +26,10 @@ type FilterMode = "all" | "credits" | "title" | "professorId" | "code";
 
 export function CoursesView() {
   const emptyForm = { title: "", credits: "", code: "", professorId: "", };
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
   const [mode, setMode] = useState<FilterMode>("all");
   const [creditInput, setCreditInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
@@ -54,7 +59,14 @@ export function CoursesView() {
             ? { type: "code", code: String(codeInput) }
             : { type: "all" };
 
-  const { data: courses, isLoading, isError, error } = useCourses(filter);
+  useEffect(() => {
+    setPage(1);
+  }, [mode, creditInput, titleInput, profInput, codeInput,]);
+
+  const { data: data, isLoading, isFetching, isError, error } = useCoursesPaginated({ page, pageSize, filter });
+  const courses = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const totalCount = data?.total ?? 0;
   const deleteCourse = useDeleteCourse();
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourses();
@@ -293,64 +305,78 @@ export function CoursesView() {
       )}
 
       {!isLoading && !!courses?.length && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Course Code</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Professor</TableHead>
-              <TableHead>Credits</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {courses.map((course) =>
-            (
-              <TableRow key={course.code}>
-                <TableCell>
-                  <Link
-                    to={`/courses/${course.code}`}
-                    className="inline-block"
-                  >
-                    <Badge
-                      variant="outline"
-                      className="font-mono cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
-                    >
-                      {course.code}
-                    </Badge>
-                  </Link>
-                </TableCell>
-                <TableCell className="font-medium">{course.title}</TableCell>
-                <TableCell>
-                  {course.professor?.name ?? "TBD"}
-                </TableCell>
-                <TableCell>{course.credits}</TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditCourseModal(course)}
-                    >
-                      <Pencil />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(course)}
-                      disabled={deleteCourse.isPending}
-                    >
-                      <Trash2 />
-                      Remove
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )
-            )}
-          </TableBody>
-        </Table>
+        <>
+          <div className={isFetching ? "opacity-70 transition-opacity" : undefined}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Course Code</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Professor</TableHead>
+                  <TableHead>Credits</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {courses.map((course) =>
+                (
+                  <TableRow key={course.code}>
+                    <TableCell>
+                      <Link
+                        to={`/courses/${course.code}`}
+                        className="inline-block"
+                      >
+                        <Badge
+                          variant="outline"
+                          className="font-mono cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          {course.code}
+                        </Badge>
+                      </Link>
+                    </TableCell>
+                    <TableCell className="font-medium">{course.title}</TableCell>
+                    <TableCell>
+                      {course.professor?.name ?? "TBD"}
+                    </TableCell>
+                    <TableCell>{course.credits}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditCourseModal(course)}
+                        >
+                          <Pencil />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(course)}
+                          disabled={deleteCourse.isPending}
+                        >
+                          <Trash2 />
+                          Remove
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <Pagination page={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }} />
+        </>
+
       )}
 
       <Modal isOpen={isAddModalOpen} onClose={closeAddCourseModal} title="Add a Course">

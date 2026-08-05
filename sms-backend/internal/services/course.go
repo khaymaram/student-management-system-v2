@@ -15,7 +15,7 @@ type CourseService interface {
 	GetByCode(code string) (*models.Course, error)
 	GetByProfessor(professorId string) ([]models.Course, error)
 
-	GetPaginated(page int, limit int, code string, title string, credits *int, professorId string)([]models.Course, int64, error)
+	GetPaginated(page int, limit int, code string, title string, credits *int, professorId string) ([]models.Course, int64, error)
 
 	Create(dto.CreateCourseRequest) error
 
@@ -29,22 +29,24 @@ type CourseService interface {
 }
 
 type courseService struct {
-	repository repositories.CourseRepository
+	repository           repositories.CourseRepository
 	enrollmentRepository repositories.EnrollmentRepository
+	studentRepository    repositories.StudentRepository
 }
 
-func NewCourseService(repo repositories.CourseRepository, eRepo repositories.EnrollmentRepository) CourseService {
+func NewCourseService(repo repositories.CourseRepository, eRepo repositories.EnrollmentRepository, sRepo repositories.StudentRepository) CourseService {
 
 	return &courseService{
-		repository: repo,
+		repository:           repo,
 		enrollmentRepository: eRepo,
+		studentRepository:    sRepo,
 	}
 }
 
 func (c *courseService) GetPaginated(
 	page int, limit int, code string, title string, credits *int, professorId string,
-) ([]models.Course, int64, error){
-	return c.repository.GetPaginated(page, limit, code, title, credits, professorId,)
+) ([]models.Course, int64, error) {
+	return c.repository.GetPaginated(page, limit, code, title, credits, professorId)
 }
 
 func (c *courseService) GetByProfessor(professorId string) ([]models.Course, error) {
@@ -89,6 +91,7 @@ func (c *courseService) Create(req dto.CreateCourseRequest) error {
 
 func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 	course, err := c.repository.GetByCode(code)
+	oldCredits := course.Credits
 	if err != nil {
 		return err
 	}
@@ -102,20 +105,61 @@ func (c *courseService) Update(code string, req dto.UpdateCourseRequest) error {
 	}
 
 	course.ProfessorID = req.ProfessorID
-	
+
+	if err := c.repository.Update(course); err != nil {
+		return err
+	}
+
+	if course.Credits != oldCredits {
+
+		enrollments, err := c.enrollmentRepository.GetByCourse(
+			course.Code,
+		)
+
+		if err != nil {
+			return err
+		}
+
+		for _, enrollment := range enrollments {
+
+			if err := recalculateStudentGPA(enrollment.StudentID,c.studentRepository,c.enrollmentRepository,); err != nil {
+				return err
+			}
+		}
+	}
+
 	return c.repository.Update(course)
 }
 
 func (c *courseService) Delete(code string) error {
+
 	if _, err := c.repository.GetByCode(code); err != nil {
 		return err
 	}
+
+	enrollments, err := c.enrollmentRepository.GetByCourse(code)
+
+	if err != nil {
+		return err
+	}
+
 	if err := c.enrollmentRepository.DeleteByCourse(code); err != nil {
 		return err
 	}
-	return c.repository.Delete(code)
-}
 
+	if err := c.repository.Delete(code); err != nil {
+		return err
+	}
+
+	for _, enrollment := range enrollments {
+
+		if err := recalculateStudentGPA(enrollment.StudentID,c.studentRepository,c.enrollmentRepository,); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 func (c *courseService) Search(title string) ([]models.Course, error) {
 	return c.repository.Search(title)
 }
@@ -123,5 +167,3 @@ func (c *courseService) Search(title string) ([]models.Course, error) {
 func (c *courseService) FilterByCredits(credits int) ([]models.Course, error) {
 	return c.repository.FilterByCredits(credits)
 }
-
-

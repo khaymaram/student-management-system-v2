@@ -26,12 +26,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	enrollmentRepository :=
-		repositories.NewEnrollmentRepository(db)
-	studentRepository :=
-		repositories.NewStudentRepository(db)
-	financeRepository :=
-		repositories.NewFinanceRepository(db)
+	enrollmentRepository := repositories.NewEnrollmentRepository(db)
+	studentRepository := repositories.NewStudentRepository(db)
+	financeRepository := repositories.NewFinanceRepository(db)
 
 	studentService :=
 		services.NewStudentService(studentRepository, enrollmentRepository, financeRepository)
@@ -49,7 +46,7 @@ func main() {
 		repositories.NewCourseRepository(db)
 
 	courseService :=
-		services.NewCourseService(courseRepository, enrollmentRepository)
+		services.NewCourseService(courseRepository, enrollmentRepository, studentRepository)
 
 	courseHandler :=
 		handlers.NewCourseHandler(courseService)

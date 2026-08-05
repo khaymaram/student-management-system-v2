@@ -44,6 +44,15 @@ export function useEnrollStudent() {
         queryClient.invalidateQueries({ queryKey: ["enrollments"] }),
         queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] }),
         queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] }),
+         // Refresh the student's newly calculated GPA.
+        queryClient.invalidateQueries({
+          queryKey: ["student", variables.studentId],
+        }),
+
+        // Refresh the student roster/dashboard GPA.
+        queryClient.invalidateQueries({
+          queryKey: ["students"],
+        }),
       ]);
     },
   });
@@ -60,6 +69,15 @@ export function useUnenrollStudent() {
         queryClient.invalidateQueries({ queryKey: ["enrollments"] }),
         queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] }),
         queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] }),
+         // Refresh the student's newly calculated GPA.
+        queryClient.invalidateQueries({
+          queryKey: ["student", variables.studentId],
+        }),
+
+        // Refresh the student roster/dashboard GPA.
+        queryClient.invalidateQueries({
+          queryKey: ["students"],
+        }),
       ]);
     },
   });
@@ -84,6 +102,15 @@ export function useUpdateEnrollmentGrade() {
         queryClient.invalidateQueries({ queryKey: ["enrollments"] }),
         queryClient.invalidateQueries({ queryKey: ["enrollments", "student", variables.studentId] }),
         queryClient.invalidateQueries({ queryKey: ["enrollments", "course", variables.courseCode] }),
+         // Refresh the student's newly calculated GPA.
+        queryClient.invalidateQueries({
+          queryKey: ["student", variables.studentId],
+        }),
+
+        // Refresh the student roster/dashboard GPA.
+        queryClient.invalidateQueries({
+          queryKey: ["students"],
+        }),
       ]);
     },
   });

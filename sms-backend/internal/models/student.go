@@ -12,7 +12,8 @@ type Student struct {
 
 	Grade int64 `gorm:"column:grade" json:"grade"`
 
-	GPA float64 `gorm:"column:gpa" json:"gpa"`
+	// GPA is a derived, credit-weighted value calculated from graded enrollments.
+	GPA *float64 `gorm:"column:gpa" json:"gpa"`
 
 	Finance *Finance `gorm:"foreignKey:StudentID;references:ID;constraint:OnDelete:CASCADE"`
 

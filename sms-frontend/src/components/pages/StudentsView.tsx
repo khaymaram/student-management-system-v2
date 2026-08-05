@@ -72,7 +72,6 @@ const emptyForm = {
   studentId: "",
   name: "",
   grade: "",
-  gpa: "",
 };
 
 export function StudentsView() {
@@ -161,7 +160,7 @@ export function StudentsView() {
     setEditingStudent(student);
 
     setEditForm({
-      studentId: String(student.studentId), name: student.name, grade: String(student.grade), gpa: String(student.gpa),
+      studentId: String(student.studentId), name: student.name, grade: String(student.grade),
     });
 
     setEditFieldErrors({});
@@ -365,108 +364,119 @@ export function StudentsView() {
         </div>
       )}
 
-      {!isLoading &&!isError &&students.length === 0 && (
-          <Card padding="lg" className="text-center text-muted-foreground">
-            No students found.
-          </Card>
-        )}
+      {!isLoading && !isError && students.length === 0 && (
+        <Card padding="lg" className="text-center text-muted-foreground">
+          No students found.
+        </Card>
+      )}
 
-      {!isLoading &&!isError &&students.length > 0 && (
-          <>
-            <div className={isFetching  ? "opacity-70 transition-opacity"  : undefined}>
+      {!isLoading && !isError && students.length > 0 && (
+        <>
+          <div className={isFetching ? "opacity-70 transition-opacity" : undefined}>
 
-              <Table>
+            <Table>
 
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Grade</TableHead>
-                    <TableHead>GPA</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Grade</TableHead>
+                  <TableHead>GPA</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+
+                {students.map((student) => (
+                  <TableRow
+                    key={student.studentId}
+                  >
+
+                    <TableCell>
+
+                      <Link to={`/roster/${student.studentId}`}>
+                        <Badge variant="outline"
+                          className="cursor-pointer font-mono transition-colors hover:bg-accent hover:text-accent-foreground"
+                        >
+                          #{student.studentId}
+                        </Badge>
+                      </Link>
+
+                    </TableCell>
+
+                    <TableCell className="font-medium">{student.name}</TableCell>
+
+                    <TableCell>{student.grade}</TableCell>
+
+                    <TableCell>
+                      {student.gpa === null ? (
+                        <span className="text-muted-foreground">
+                          N/A
+                        </span>
+                      ) : (
+                        <span
+                          className={
+                            student.gpa >= 3.5
+                              ? "font-bold text-success"
+                              : undefined
+                          }
+                        >
+                          {student.gpa.toFixed(2)}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEnrollmentStudent(student)}
+                        >
+                          <BookOpen />
+                          Courses
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditStudentModal(student)}
+                        >
+                          <Pencil />
+                          Edit
+                        </Button>
+
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(student)
+                          }
+                          disabled={deleteStudent.isPending}
+                        >
+                          <Trash2 />
+                          Remove
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
+                )
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
-                <TableBody>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+          />
 
-                  {students.map((student) => (
-                      <TableRow
-                        key={student.studentId}
-                      >
-
-                        <TableCell>
-
-                          <Link to={`/roster/${student.studentId}`}>
-                            <Badge variant="outline"
-                              className="cursor-pointer font-mono transition-colors hover:bg-accent hover:text-accent-foreground"
-                            >
-                              #{student.studentId}
-                            </Badge>
-                          </Link>
-
-                        </TableCell>
-
-                        <TableCell className="font-medium">{student.name}</TableCell>
-
-                        <TableCell>{student.grade}</TableCell>
-
-                        <TableCell>
-                          <span className={student.gpa >= 3.5? "font-bold text-success": undefined}>
-                            {student.gpa.toFixed(2)}
-                          </span>
-
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>setEnrollmentStudent(student)}
-                            >
-                              <BookOpen />
-                              Courses
-                            </Button>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>openEditStudentModal(student)}
-                            >
-                              <Pencil />
-                              Edit
-                            </Button>
-
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() =>handleDelete(student)
-                              }
-                              disabled={deleteStudent.isPending}
-                            >
-                              <Trash2 />
-                              Remove
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onPageSizeChange={(size) => {setPageSize(size);setPage(1);}}
-            />
-
-          </>
-        )}
+        </>
+      )}
 
       <Modal isOpen={isAddModalOpen} onClose={closeAddStudentModal} title="Enroll a Student">
         <form className="space-y-4" onSubmit={addStudent}>
@@ -530,25 +540,9 @@ export function StudentsView() {
             required
           />
 
-          <Input
-            label="GPA"
-            id="gpa"
-            inputMode="decimal"
-            placeholder="3.8"
-            value={
-              addForm.gpa
-            }
-            onChange={(e) =>
-              handleAddFormChange(
-                "gpa",
-                e.target.value
-              )
-            }
-            error={
-              addFieldErrors.gpa
-            }
-            required
-          />
+          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+            GPA is calculated automatically from the student's graded courses.
+          </div>
 
           <div className="flex justify-end gap-2 pt-2">
 
@@ -637,23 +631,9 @@ export function StudentsView() {
             required
           />
 
-          <Input
-            label="GPA"
-            inputMode="decimal"
-            value={
-              editForm.gpa
-            }
-            onChange={(e) =>
-              handleEditFormChange(
-                "gpa",
-                e.target.value
-              )
-            }
-            error={
-              editFieldErrors.gpa
-            }
-            required
-          />
+          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+            GPA is calculated automatically from the grades earned in the student's courses and cannot be edited here.
+          </div>
 
           <div className="flex justify-end gap-2 pt-2">
 
@@ -683,7 +663,7 @@ export function StudentsView() {
         </form>
       </Modal>
 
-      <EnrollmentModal student={enrollmentStudent}onClose={() =>setEnrollmentStudent(null)}/>
+      <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
     </div>
   );
 }

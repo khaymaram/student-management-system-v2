@@ -95,34 +95,45 @@ func (s *enrollmentService) Enroll(studentId int, req dto.CreateEnrollmentReques
 	return s.repository.Create(&enrollment)
 }
 
-func (s *enrollmentService) Unenroll(studentId int, courseCode string) error {
+func (s *enrollmentService) Unenroll(studentId int,courseCode string,) error {
 
-	_, err := s.repository.GetByStudentAndCourse(studentId, courseCode)
+	_, err := s.repository.GetByStudentAndCourse(studentId,courseCode,)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("enrollment not found")
 		}
+
 		return err
 	}
 
-	return s.repository.Delete(studentId, courseCode)
+	if err := s.repository.Delete(studentId,courseCode,); err != nil {
+		return err
+	}
+
+	return recalculateStudentGPA(studentId,s.studentRepository,s.repository,)
 }
 
-func (s *enrollmentService) UpdateGrade(studentId int, courseCode string, req dto.UpdateEnrollmentRequest) error {
+func (s *enrollmentService) UpdateGrade(studentId int,courseCode string,req dto.UpdateEnrollmentRequest,) error {
 
-	enrollment, err := s.repository.GetByStudentAndCourse(studentId, courseCode)
+	enrollment, err := s.repository.GetByStudentAndCourse(studentId,courseCode,
+	)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("enrollment not found")
 		}
+
 		return err
 	}
 
 	enrollment.Grade = req.Grade
 
-	return s.repository.Update(enrollment)
+	if err := s.repository.Update(enrollment); err != nil {
+		return err
+	}
+
+	return recalculateStudentGPA(studentId,s.studentRepository,s.repository,)
 }
 
 func (s *enrollmentService) GetAll() ([]models.Enrollment, error) {

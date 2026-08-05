@@ -26,7 +26,7 @@ export const StudentSchema = z.object({
     studentId: z.number(),
     name: z.string(),
     grade: z.number(),
-    gpa: z.number(),
+    gpa: z.number().nullable(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
 });
@@ -37,7 +37,6 @@ export const StudentInputSchema = z.object({
     studentId: z.coerce.number().int().positive("Student ID must be a positive number"),
     name: z.string().min(1, "Name is required").transform(value => capitalizeWords(value.trim())),
     grade: z.coerce.number().int().min(1, "Lowest grade level is 1").max(4, "Highest grade level is 4"),
-    gpa: z.coerce.number().min(0, "GPA must be between 0.0 and 4.0").max(4, "GPA must be between 0.0 and 4.0")
 });
 export type StudentInput = z.infer<typeof StudentInputSchema>;
 

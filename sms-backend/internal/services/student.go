@@ -77,8 +77,7 @@ func (s *studentService) GetByID(id int) (*models.Student, error) {
 }
 
 func (s *studentService) Create(req dto.CreateStudentRequest) error {
-	// Validate the request before saving it to the database.
-	// This is the business-rule layer, where duplicate IDs and invalid GPA values are rejected.
+	// GPA is not accepted here because it is derived from course grades.
 
 	_, err := s.repository.GetByID(req.StudentID)
 
@@ -90,15 +89,11 @@ func (s *studentService) Create(req dto.CreateStudentRequest) error {
 		return err
 	}
 
-	if req.GPA < 0 || req.GPA > 4 {
-		return errors.New("invalid GPA")
-	}
-
 	student := models.Student{
 		ID:    req.StudentID,
 		Name:  req.Name,
 		Grade: req.Grade,
-		GPA:   req.GPA,
+		GPA:   nil,
 	}
 
 	if err := s.repository.Create(&student); err != nil {
@@ -121,7 +116,10 @@ func (s *studentService) Create(req dto.CreateStudentRequest) error {
 	return s.financeRepository.Create(&finance)
 }
 
-func (s *studentService) Update(id int, req dto.UpdateStudentRequest) error {
+func (s *studentService) Update(
+	id int,
+	req dto.UpdateStudentRequest,
+) error {
 
 	student, err := s.repository.GetByID(id)
 
@@ -134,11 +132,7 @@ func (s *studentService) Update(id int, req dto.UpdateStudentRequest) error {
 	}
 
 	if req.Grade != 0 {
-		student.Grade = int64(req.Grade)
-	}
-
-	if req.GPA != 0 {
-		student.GPA = req.GPA
+		student.Grade = req.Grade
 	}
 
 	return s.repository.Update(student)

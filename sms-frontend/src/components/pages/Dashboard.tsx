@@ -25,7 +25,7 @@ export function Dashboard() {
     const { data: courses = [] } = useCourses();
     const { data: professors = [] } = useProfessors();
     const { data: enrollments = [] } = useAllEnrollments();
-    const {data: finances = []} = useFinances();
+    const { data: finances = [] } = useFinances();
 
     const totalStudents = students.length;
     const totalCourses = courses.length;
@@ -35,13 +35,23 @@ export function Dashboard() {
             .filter((course) => Boolean(course.professorId))
             .map((course) => course.professorId as string)
     ).size;
-    const averageGpa = totalStudents
-        ? (students.reduce((sum, student) => sum + (student.gpa ?? 0), 0) / totalStudents).toFixed(2)
-        : '0.00';
-    
-    //replace with revenue when financial data is available
-    const honorRollStudents = students.filter((student) => (student.gpa ?? 0) >= 3.5).length;
+    const studentsWithGpa = students.filter(
+        (student) => student.gpa !== null
+    );
 
+    const averageGpa = studentsWithGpa.length
+        ? (
+            studentsWithGpa.reduce(
+                (sum, student) => sum + student.gpa!,
+                0
+            ) / studentsWithGpa.length
+        ).toFixed(2)
+        : "N/A";
+
+    //replace with revenue when financial data is available
+    const honorRollStudents = students.filter(
+        (student) => student.gpa !== null && student.gpa >= 3.5
+    ).length;
     const recentActions = [
         ...students.map((student) => ({
             action: 'Student Added',
@@ -175,7 +185,7 @@ export function Dashboard() {
                                             <Badge className="px-2 py-1 text-xs" style={{ backgroundColor: item.accent.bg, color: item.accent.text }} >
                                                 {item.action}
                                             </Badge>
-                                            </TableCell>
+                                        </TableCell>
                                         <TableCell>{item.details}</TableCell>
                                         <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
                                     </TableRow>

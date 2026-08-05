@@ -14,7 +14,7 @@ func Seed(db *gorm.DB) error {
 			ID:    1122,
 			Name:  "Happy Birthday",
 			Grade: 1,
-			GPA:   3.2,
+			
 		},
 	}
 	courses := []models.Course{

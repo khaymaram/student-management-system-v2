@@ -227,7 +227,7 @@ export default function StudentDetailsView() {
                             </p>
 
                             <p className="mt-1 text-3xl font-bold">
-                                {student.gpa.toFixed(2)}
+                                {student.gpa === null ? "N/A" : student.gpa.toFixed(2)}
                             </p>
                         </div>
 
@@ -457,11 +457,7 @@ function RosterRow({
     }
 
     function handleRemove() {
-        if (
-            !window.confirm(
-                `Remove ${enrollment.course?.title ?? "this course"
-                } from ${enrollment.student?.name}?`
-            )
+        if (!window.confirm(`Remove ${enrollment.course?.title ?? "this course"} from ${enrollment.student?.name}?`)
         ) {
             return;
         }
@@ -473,10 +469,7 @@ function RosterRow({
             },
             {
                 onSuccess: () =>
-                    toast.success(
-                        `Removed ${enrollment.course?.title ?? "course"
-                        }.`
-                    ),
+                    toast.success(`Removed ${enrollment.course?.title ?? "course"}.`),
                 onError: (err) =>
                     toast.error(apiErrorMessage(err)),
             }

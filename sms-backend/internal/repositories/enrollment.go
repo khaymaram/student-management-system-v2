@@ -98,7 +98,7 @@ func (r *enrollmentRepository) GetByStudent(studentId int) ([]models.Enrollment,
 
 	var enrollments []models.Enrollment
 
-	err := r.db.
+	err := r.db.Preload("Student").
 		Preload("Course").Preload("Course.Professor").
 		Where("student_id = ?", studentId).
 		Find(&enrollments).Error

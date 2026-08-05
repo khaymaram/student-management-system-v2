@@ -77,176 +77,74 @@ const emptyForm = {
 
 export function StudentsView() {
 
-  const [page, setPage] =
-    useState(1);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
-  const [pageSize, setPageSize] =
-    useState(5);
+  const [mode, setMode] = useState<FilterMode>("all");
+  const [gradeInput, setGradeInput] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
+  const [enrollmentStudent, setEnrollmentStudent,] = useState<Student | null>(null);
+  const [editingStudent, setEditingStudent,] = useState<Student | null>(null);
 
-  const [mode, setMode] =
-    useState<FilterMode>("all");
+  const [isAddModalOpen, setIsAddModalOpen,] = useState(false);
+  const [addForm, setAddForm] = useState(emptyForm);
 
-  const [gradeInput, setGradeInput] =
-    useState("");
+  const [addFieldErrors, setAddFieldErrors,] = useState<Partial<Record<keyof StudentInput, string>>>({});
 
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [editForm, setEditForm] = useState(emptyForm);
 
-  const [nameInput, setNameInput] =
-    useState("");
-
-  const [
-    enrollmentStudent,
-    setEnrollmentStudent,
-  ] = useState<Student | null>(null);
-
-  const [
-    editingStudent,
-    setEditingStudent,
-  ] = useState<Student | null>(null);
-
-  const [
-    isAddModalOpen,
-    setIsAddModalOpen,
-  ] = useState(false);
-
-  const [addForm, setAddForm] =
-    useState(emptyForm);
-
-  const [
-    addFieldErrors,
-    setAddFieldErrors,
-  ] = useState<
-    Partial<
-      Record<
-        keyof StudentInput,
-        string
-      >
-    >
-  >({});
-
-  const [editForm, setEditForm] =
-    useState(emptyForm);
-
-  const [
-    editFieldErrors,
-    setEditFieldErrors,
-  ] = useState<
-    Partial<
-      Record<
-        keyof StudentInput,
-        string
-      >
-    >
-  >({});
+  const [editFieldErrors, setEditFieldErrors,] = useState<Partial<Record<keyof StudentInput, string>>>({});
 
   const filter: StudentFilter =
-    mode === "grade" &&
-    gradeInput
-      ? {
-          type: "grade",
-          grade: Number(
-            gradeInput
-          ),
-        }
-      : mode === "honors"
-        ? {
-            type: "honors",
-          }
-        : mode === "search" &&
-          searchInput
-          ? {
-              type: "search",
-              studentId: Number(
-                searchInput
-              ),
-            }
-          : mode === "name" &&
-            nameInput.trim()
-            ? {
-                type: "name",
-                name: nameInput.trim(),
-              }
-            : {
-                type: "all",
-              };
+    mode === "grade" && gradeInput ? {
+      type: "grade",
+      grade: Number(gradeInput),
+    } : mode === "honors" ? {
+      type: "honors",
+    } : mode === "search" && searchInput ? {
+      type: "search",
+      studentId: Number(searchInput),
+    } : mode === "name" && nameInput.trim() ? {
+      type: "name",
+      name: nameInput.trim(),
+    } : {
+      type: "all",
+    };
 
   // Return to the first page whenever
   // the active filter changes.
   useEffect(() => {
     setPage(1);
-  }, [
-    mode,
-    gradeInput,
-    searchInput,
-    nameInput,
-  ]);
+  }, [mode, gradeInput, searchInput, nameInput,]);
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    error,
-  } = useStudentsPaginated({
-    page,
-    pageSize,
-    filter,
-  });
+  const { data, isLoading, isFetching, isError, error,
+  } = useStudentsPaginated({ page, pageSize, filter, });
 
-  const students =
-    data?.data ?? [];
+  const students = data?.data ?? [];
 
-  const totalPages =
-    data?.totalPages ?? 1;
+  const totalPages = data?.totalPages ?? 1;
 
-  const totalCount =
-    data?.total ?? 0;
+  const totalCount = data?.total ?? 0;
 
-  const deleteStudent =
-    useDeleteStudent();
+  const deleteStudent = useDeleteStudent();
 
-  const createStudent =
-    useCreateStudent();
+  const createStudent = useCreateStudent();
 
-  const updateStudent =
-    useUpdateStudent();
+  const updateStudent = useUpdateStudent();
 
-  function handleDelete(
-    student: Student
-  ) {
-    if (
-      !window.confirm(
-        `Remove ${student.name} (ID ${student.studentId}) from the roster?`
-      )
-    ) {
+  function handleDelete(student: Student) {
+    if (!window.confirm(`Remove ${student.name} (ID ${student.studentId}) from the roster?`)) {
       return;
     }
-
-    deleteStudent.mutate(
-      student.studentId,
-      {
-        onSuccess: () =>
-          toast.success(
-            `Removed ${student.name} from the roster.`
-          ),
-
-        onError: (err) =>
-          toast.error(
-            apiErrorMessage(err)
-          ),
-      }
-    );
+    deleteStudent.mutate(student.studentId, {
+      onSuccess: () => toast.success(`Removed ${student.name} from the roster.`),
+      onError: (err) => toast.error(apiErrorMessage(err)),
+    });
   }
 
-  function handleAddFormChange(
-    field: keyof typeof addForm,
-    value: string
-  ) {
-    setAddForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  function handleAddFormChange(field: keyof typeof addForm, value: string) {
+    setAddForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function handleEditFormChange(
@@ -259,22 +157,11 @@ export function StudentsView() {
     }));
   }
 
-  function openEditStudentModal(
-    student: Student
-  ) {
+  function openEditStudentModal(student: Student) {
     setEditingStudent(student);
 
     setEditForm({
-      studentId: String(
-        student.studentId
-      ),
-      name: student.name,
-      grade: String(
-        student.grade
-      ),
-      gpa: String(
-        student.gpa
-      ),
+      studentId: String(student.studentId), name: student.name, grade: String(student.grade), gpa: String(student.gpa),
     });
 
     setEditFieldErrors({});
@@ -307,108 +194,52 @@ export function StudentsView() {
     setAddFieldErrors({});
   }
 
-  function addStudent(
-    e: FormEvent
-  ) {
+  function addStudent(e: FormEvent) {
     e.preventDefault();
 
-    const result =
-      StudentInputSchema.safeParse(
-        addForm
-      );
-
+    const result = StudentInputSchema.safeParse(addForm);
     if (!result.success) {
 
-      const errors: Partial<
-        Record<
-          keyof StudentInput,
-          string
-        >
-      > = {};
-
-      for (
-        const issue of result.error.issues
-      ) {
-        const key =
-          issue.path[0] as keyof StudentInput;
-
-        errors[key] =
-          issue.message;
+      const errors: Partial<Record<keyof StudentInput, string>> = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof StudentInput;
+        errors[key] = issue.message;
       }
 
-      setAddFieldErrors(
-        errors
-      );
+      setAddFieldErrors(errors);
 
       return;
     }
 
     setAddFieldErrors({});
 
-    createStudent.mutate(
-      result.data,
-      {
-        onSuccess: () => {
-
-          setAddForm({
-            ...emptyForm,
-          });
-
-          setIsAddModalOpen(
-            false
-          );
-
-          setPage(1);
-
-          toast.success(
-            `Enrolled ${result.data.name} (ID ${result.data.studentId}) in the roster.`
-          );
-        },
-
-        onError: (err) =>
-          toast.error(
-            apiErrorMessage(err)
-          ),
-      }
-    );
+    createStudent.mutate(result.data, {
+      onSuccess: () => {
+        setAddForm({ ...emptyForm });
+        setIsAddModalOpen(false);
+        toast.success(`Enrolled ${result.data.name} (ID ${result.data.studentId}) in the roster.`);
+      },
+      onError: (err) => toast.error(apiErrorMessage(err)),
+    });
   }
 
-  function editStudent(
-    e: FormEvent
-  ) {
+  function editStudent(e: FormEvent) {
     e.preventDefault();
 
-    if (!editingStudent) {
-      return;
-    }
+    if (!editingStudent) return;
 
-    const result =
-      StudentInputSchema.safeParse(
-        editForm
-      );
+    const result = StudentInputSchema.safeParse(editForm);
 
     if (!result.success) {
 
-      const errors: Partial<
-        Record<
-          keyof StudentInput,
-          string
-        >
-      > = {};
+      const errors: Partial<Record<keyof StudentInput, string>> = {};
 
-      for (
-        const issue of result.error.issues
-      ) {
-        const key =
-          issue.path[0] as keyof StudentInput;
-
-        errors[key] =
-          issue.message;
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof StudentInput;
+        errors[key] = issue.message;
       }
 
-      setEditFieldErrors(
-        errors
-      );
+      setEditFieldErrors(errors);
 
       return;
     }
@@ -417,25 +248,15 @@ export function StudentsView() {
 
     updateStudent.mutate(
       {
-        studentId:
-          editingStudent.studentId,
-
+        studentId: editingStudent.studentId,
         input: result.data,
       },
       {
         onSuccess: () => {
-
-          toast.success(
-            `Updated ${result.data.name}.`
-          );
-
+          toast.success(`Updated ${result.data.name}.`);
           closeEditStudentModal();
         },
-
-        onError: (err) =>
-          toast.error(
-            apiErrorMessage(err)
-          ),
+        onError: (err) => toast.error(apiErrorMessage(err)),
       }
     );
   }
@@ -447,68 +268,41 @@ export function StudentsView() {
         title="Student Roster"
         description="View, filter, edit, add or remove students on file."
         actions={
-          <Button
-            onClick={
-              openAddStudentModal
-            }
-          >
+          <Button onClick={openAddStudentModal}>
             <Plus />
             Enroll a Student
           </Button>
         }
       />
 
-      <Card
-        padding="responsive"
-        className="mb-6"
-      >
+      <Card padding="responsive" className="mb-6">
         <div className="flex flex-wrap items-end gap-4">
 
           <div className="w-full sm:w-56">
 
-            <label
-              htmlFor="filter-mode"
-              className="mb-2 block text-sm font-medium text-foreground/80"
-            >
+            <label htmlFor="filter-mode" className="block text-sm font-medium text-foreground/80 mb-2">
               Show
             </label>
 
             <Select
               value={mode}
-              onValueChange={(value) =>
-                setMode(
-                  value as FilterMode
-                )
-              }
+              onValueChange={(value) => setMode(value as FilterMode)}
             >
-              <SelectTrigger
-                id="filter-mode"
-                className="w-full"
-              >
+              <SelectTrigger id="filter-mode" className="w-full">
                 <SelectValue />
               </SelectTrigger>
 
               <SelectContent>
 
-                <SelectItem value="all">
-                  All students
-                </SelectItem>
+                <SelectItem value="all">All students</SelectItem>
 
-                <SelectItem value="grade">
-                  By grade
-                </SelectItem>
+                <SelectItem value="grade">By grade</SelectItem>
 
-                <SelectItem value="honors">
-                  Honors (GPA ≥ 3.5)
-                </SelectItem>
+                <SelectItem value="honors">Honors (GPA ≥ 3.5)</SelectItem>
 
-                <SelectItem value="search">
-                  Search by student ID
-                </SelectItem>
+                <SelectItem value="search">Search by student ID</SelectItem>
 
-                <SelectItem value="name">
-                  Search by name
-                </SelectItem>
+                <SelectItem value="name">Search by name</SelectItem>
 
               </SelectContent>
             </Select>
@@ -524,11 +318,7 @@ export function StudentsView() {
                 inputMode="numeric"
                 placeholder="3"
                 value={gradeInput}
-                onChange={(e) =>
-                  setGradeInput(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => setGradeInput(e.target.value)}
               />
 
             </div>
@@ -543,11 +333,7 @@ export function StudentsView() {
                 inputMode="numeric"
                 placeholder="1001"
                 value={searchInput}
-                onChange={(e) =>
-                  setSearchInput(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => setSearchInput(e.target.value)}
               />
 
             </div>
@@ -562,11 +348,7 @@ export function StudentsView() {
                 inputMode="text"
                 placeholder="Khaymar Moe"
                 value={nameInput}
-                onChange={(e) =>
-                  setNameInput(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => setNameInput(e.target.value)}
               />
 
             </div>
@@ -575,11 +357,7 @@ export function StudentsView() {
         </div>
       </Card>
 
-      {isLoading && (
-        <p className="text-sm text-muted-foreground">
-          Loading roster…
-        </p>
-      )}
+      {isLoading && <p className="text-sm text-muted-foreground">Loading roster…</p>}
 
       {isError && (
         <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -587,127 +365,64 @@ export function StudentsView() {
         </div>
       )}
 
-      {!isLoading &&
-        !isError &&
-        students.length === 0 && (
-          <Card
-            padding="lg"
-            className="text-center text-muted-foreground"
-          >
+      {!isLoading &&!isError &&students.length === 0 && (
+          <Card padding="lg" className="text-center text-muted-foreground">
             No students found.
           </Card>
         )}
 
-      {!isLoading &&
-        !isError &&
-        students.length > 0 && (
+      {!isLoading &&!isError &&students.length > 0 && (
           <>
-
-            <div
-              className={
-                isFetching
-                  ? "opacity-70 transition-opacity"
-                  : undefined
-              }
-            >
+            <div className={isFetching  ? "opacity-70 transition-opacity"  : undefined}>
 
               <Table>
 
                 <TableHeader>
                   <TableRow>
-
-                    <TableHead>
-                      ID
-                    </TableHead>
-
-                    <TableHead>
-                      Name
-                    </TableHead>
-
-                    <TableHead>
-                      Grade
-                    </TableHead>
-
-                    <TableHead>
-                      GPA
-                    </TableHead>
-
-                    <TableHead className="text-right">
-                      Actions
-                    </TableHead>
-
+                    <TableHead>ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Grade</TableHead>
+                    <TableHead>GPA</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
 
-                  {students.map(
-                    (student) => (
+                  {students.map((student) => (
                       <TableRow
-                        key={
-                          student.studentId
-                        }
+                        key={student.studentId}
                       >
 
                         <TableCell>
 
-                          <Link
-                            to={`/roster/${student.studentId}`}
-                          >
-                            <Badge
-                              variant="outline"
+                          <Link to={`/roster/${student.studentId}`}>
+                            <Badge variant="outline"
                               className="cursor-pointer font-mono transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
-                              #
-                              {
-                                student.studentId
-                              }
+                              #{student.studentId}
                             </Badge>
                           </Link>
 
                         </TableCell>
 
-                        <TableCell className="font-medium">
-                          {
-                            student.name
-                          }
-                        </TableCell>
+                        <TableCell className="font-medium">{student.name}</TableCell>
+
+                        <TableCell>{student.grade}</TableCell>
 
                         <TableCell>
-                          {
-                            student.grade
-                          }
-                        </TableCell>
-
-                        <TableCell>
-
-                          <span
-                            className={
-                              student.gpa >=
-                              3.5
-                                ? "font-bold text-success"
-                                : undefined
-                            }
-                          >
-                            {student.gpa.toFixed(
-                              2
-                            )}
+                          <span className={student.gpa >= 3.5? "font-bold text-success": undefined}>
+                            {student.gpa.toFixed(2)}
                           </span>
 
                         </TableCell>
 
                         <TableCell>
-
                           <div className="flex items-center justify-end gap-2">
-
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                setEnrollmentStudent(
-                                  student
-                                )
-                              }
+                              onClick={() =>setEnrollmentStudent(student)}
                             >
                               <BookOpen />
                               Courses
@@ -716,11 +431,7 @@ export function StudentsView() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                openEditStudentModal(
-                                  student
-                                )
-                              }
+                              onClick={() =>openEditStudentModal(student)}
                             >
                               <Pencil />
                               Edit
@@ -729,75 +440,36 @@ export function StudentsView() {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() =>
-                                handleDelete(
-                                  student
-                                )
+                              onClick={() =>handleDelete(student)
                               }
-                              disabled={
-                                deleteStudent.isPending
-                              }
+                              disabled={deleteStudent.isPending}
                             >
                               <Trash2 />
                               Remove
                             </Button>
-
                           </div>
-
                         </TableCell>
-
                       </TableRow>
                     )
                   )}
-
                 </TableBody>
-
               </Table>
-
             </div>
 
             <Pagination
               page={page}
-              totalPages={
-                totalPages
-              }
-              pageSize={
-                pageSize
-              }
-              totalCount={
-                totalCount
-              }
-              onPageChange={
-                setPage
-              }
-              onPageSizeChange={(
-                size
-              ) => {
-                setPageSize(
-                  size
-                );
-                setPage(1);
-              }}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {setPageSize(size);setPage(1);}}
             />
 
           </>
         )}
 
-      <Modal
-        isOpen={
-          isAddModalOpen
-        }
-        onClose={
-          closeAddStudentModal
-        }
-        title="Enroll a Student"
-      >
-        <form
-          className="space-y-4"
-          onSubmit={
-            addStudent
-          }
-        >
+      <Modal isOpen={isAddModalOpen} onClose={closeAddStudentModal} title="Enroll a Student">
+        <form className="space-y-4" onSubmit={addStudent}>
 
           <Input
             label="Student ID"
@@ -1011,17 +683,7 @@ export function StudentsView() {
         </form>
       </Modal>
 
-      <EnrollmentModal
-        student={
-          enrollmentStudent
-        }
-        onClose={() =>
-          setEnrollmentStudent(
-            null
-          )
-        }
-      />
-
+      <EnrollmentModal student={enrollmentStudent}onClose={() =>setEnrollmentStudent(null)}/>
     </div>
   );
 }

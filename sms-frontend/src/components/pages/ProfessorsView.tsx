@@ -1,8 +1,8 @@
 // ProfessorsView.tsx renders the roster UI and handles filtering, editing, and deletion.
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useDeleteProfessor, useProfessors, useUpdateProfessor, useCreateProfessor, type ProfessorFilter } from "../../hooks/useProfessors";
+import { useDeleteProfessor, useProfessors, useUpdateProfessor, useCreateProfessor, useProfessorsPaginated, type ProfessorFilter } from "../../hooks/useProfessors";
 import { apiErrorMessage } from "../../lib/axios";
 import { ProfessorInputSchema, type Professor, type ProfessorInput } from "../../types";
 import PageHeader from "../ui/PageHeader";
@@ -11,6 +11,7 @@ import { Button } from "../ui/Button";
 import Input from "../ui/Input";
 import Modal from "../ui/Modal";
 import { Badge } from "../ui/Badge";
+import { Pagination } from "../ui/Pagination";
 import {
     Select,
     SelectContent,
@@ -22,10 +23,12 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 import { useCourses } from "@/hooks/useCourses";
 
 type FilterMode = "all" | "search" | "name";
-
+const emptyForm = { id: "", name: "" };
 export function ProfessorsView() {
-    const emptyForm = { id: "", name: "" };
     const { data: courses = [] } = useCourses();
+
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
 
     const [mode, setMode] = useState<FilterMode>("all");
     const [searchInput, setSearchInput] = useState("");
@@ -47,7 +50,30 @@ export function ProfessorsView() {
                 ? { type: "name", name: String(nameInput) }
                 : { type: "all" };
 
-    const { data: professors, isLoading, isError, error } = useProfessors(filter);
+    useEffect(() => {
+        setPage(1);
+    }, [mode, searchInput, nameInput,]);
+
+    const {
+        data,
+        isLoading,
+        isFetching,
+        isError,
+        error,
+    } = useProfessorsPaginated({
+        page,
+        pageSize,
+        filter,
+    });
+
+    const professors =
+        data?.data ?? [];
+
+    const totalPages =
+        data?.totalPages ?? 1;
+
+    const totalCount =
+        data?.total ?? 0;
     const deleteProfessor = useDeleteProfessor();
     const createProfessor = useCreateProfessor();
     const updateProfessor = useUpdateProfessor();
@@ -241,7 +267,9 @@ export function ProfessorsView() {
             )}
 
             {!isLoading && !!professors?.length && (
-                <Table>
+                <>
+                <div className={isFetching  ? "opacity-70 transition-opacity"  : undefined}>
+                    <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
@@ -265,7 +293,7 @@ export function ProfessorsView() {
                                         const professorStatus = getProfessorStatus(professor.id);
                                         return (
                                             <Badge
-                                                
+
                                                 className={professorStatus === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-red-800"}
                                             >
                                                 {professorStatus === "active" ? "Active" : "Inactive"}
@@ -299,6 +327,21 @@ export function ProfessorsView() {
                         )}
                     </TableBody>
                 </Table>
+                </div>
+                
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                        }}
+                    />
+                </>
+
             )}
 
             <Modal isOpen={isAddModalOpen} onClose={closeAddProfessorModal} title="Register a Professor">

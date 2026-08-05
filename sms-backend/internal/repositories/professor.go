@@ -9,6 +9,7 @@ import (
 type ProfessorRepository interface {
 	GetAll() ([]models.Professor, error)
 	GetByID(id string) (*models.Professor, error)
+	GetPaginated(page int, limit int, professorId string, name string)([]models.Professor, int64, error)
 	Create(professor *models.Professor) error
 	Update(professor *models.Professor) error
 	Delete(id string) error
@@ -33,6 +34,41 @@ func (r *professorRepository) GetAll() ([]models.Professor, error) {
 	r.db.Preload("Courses")
 
 	return professors, err
+}
+
+func (r *professorRepository) GetPaginated(page int, limit int, professorId string, name string) ([]models.Professor, int64, error){
+	var professors []models.Professor
+	var total int64
+	query := r.db.Model(&models.Professor{})
+
+	if professorId != ""{
+		query = query.Where(
+			"LOWER(id) = LOWER(?)",
+			professorId,
+		)
+	}
+
+	if name != "" {
+		query = query.Where(
+			"name LIKE ?",
+			"%"+name+"%",
+		)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * limit
+
+	if err := query.
+		Order("id").
+		Offset(offset).
+		Limit(limit).
+		Find(&professors).Error; err != nil {
+			return nil, 0, err
+		}
+	return professors, total, nil
 }
 
 func (r *professorRepository) GetByID(id string) (*models.Professor, error) {

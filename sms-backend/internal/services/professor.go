@@ -12,6 +12,8 @@ type ProfessorService interface {
 
 	GetAll() ([]models.Professor, error)
 
+	GetPaginated(page int, limit int, professorId string, name string)([]models.Professor, int64, error)
+
 	GetByID(id string) (*models.Professor, error)
 
 	Create(req dto.CreateProfessorRequest) error
@@ -38,6 +40,10 @@ func NewProfessorService(repo repositories.ProfessorRepository, courseRepo repos
 
 func (c *professorService) GetAll() ([]models.Professor, error) {
 	return c.repository.GetAll()
+}
+
+func (c *professorService) GetPaginated(page int, limit int, professorId string, name string)([]models.Professor, int64, error){
+	return c.repository.GetPaginated(page, limit, professorId, name,)
 }
 
 func (c *professorService) GetByID(id string) (*models.Professor, error) {

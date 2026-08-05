@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"sms-backend/internal/dto"
 	"sms-backend/internal/helpers"
+	"sms-backend/internal/models"
 	"sms-backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
+
 type ProfessorHandler struct {
 	service services.ProfessorService
 }
@@ -25,7 +28,65 @@ func NewProfessorHandler(
 // GET /professors returns every student record.
 func (h *ProfessorHandler) GetAll(c *gin.Context) {
 
-	professors, err := h.service.GetAll()
+	pageParam := c.Query("page")
+	limitParam := c.Query("limit")
+
+	if pageParam == "" && limitParam == "" {
+		professors, err := h.service.GetAll()
+
+		if err != nil {
+			helpers.ErrorResponse(
+				c,
+				http.StatusInternalServerError,
+				err.Error(),
+			)
+			return
+		}
+
+		helpers.SuccessResponse(
+			c,
+			http.StatusOK,
+			professors,
+		)
+		return
+	}
+
+	page := 1
+	limit := 5
+	if pageParam != "" {
+		parsedPage, err := strconv.Atoi(pageParam)
+
+		if err != nil || parsedPage < 1 {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"page must be a positive integer",
+			)
+			return
+		}
+		page = parsedPage
+	}
+
+	if limitParam != "" {
+		parsedLimit, err := strconv.Atoi(limitParam)
+
+		if err != nil || parsedLimit < 1 || parsedLimit > 100 {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"limit must be between 1 and 100",
+			)
+			return
+		}
+		limit = parsedLimit
+	}
+
+	professorId := c.Query("professorId")
+	name := c.Query("name")
+
+	professors, total, err := h.service.GetPaginated(
+		page, limit, professorId, name,
+	)
 
 	if err != nil {
 		helpers.ErrorResponse(
@@ -36,10 +97,20 @@ func (h *ProfessorHandler) GetAll(c *gin.Context) {
 		return
 	}
 
+	totalPages := (total + int64(limit) - 1) / int64(limit)
+
+	response := dto.PaginationResponse[models.Professor]{
+		Data:       professors,
+		Page:       page,
+		PageSize:   limit,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
 	helpers.SuccessResponse(
 		c,
 		http.StatusOK,
-		professors,
+		response,
 	)
 }
 
@@ -138,8 +209,6 @@ func (h *ProfessorHandler) Update(c *gin.Context) {
 // DELETE /professors/:code
 func (h *ProfessorHandler) Delete(c *gin.Context) {
 	professorCode := c.Param("id")
-
-	
 
 	err := h.service.Delete(professorCode)
 	if err != nil {

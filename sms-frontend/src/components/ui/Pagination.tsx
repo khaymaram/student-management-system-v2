@@ -49,7 +49,7 @@ export function Pagination({
     <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
       <div className="text-sm text-muted-foreground">
-        Showing {start}-{end} of {totalCount} students
+        Showing {start}-{end} of {totalCount} records
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3">

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { api, get, post, put } from "../lib/axios"
 import type { Professor, ProfessorInput } from "../types";
 
@@ -7,6 +7,14 @@ export type ProfessorFilter =
     | { type: "all" }
     | { type: "search"; id: string }
     | { type: "name"; name: string};
+
+export interface ProfessorPaginationOptions {
+    page: number; pageSize: number; filter: ProfessorFilter;
+}
+
+export interface PaginatedProfessors {
+    data: Professor[]; page: number; pageSize: number; total: number; totalPages: number;
+}
 
 export function useProfessors(filter: ProfessorFilter = { type: "all"}){
     // React Query fetches students from the backend and caches the result.
@@ -36,10 +44,39 @@ export function useProfessors(filter: ProfessorFilter = { type: "all"}){
 
                     return await get<Professor[]>(`/professors/search?name=${query}`);
                 }
+                case "all":
                 default:
                     return await get<Professor[]>("/professors");
             }
         },
+    });
+}
+
+export function useProfessorsPaginated({
+    page, pageSize, filter,
+}: ProfessorPaginationOptions) {
+    return useQuery<PaginatedProfessors>({
+        queryKey:["professors", "paginated", page, pageSize, filter,],
+        queryFn: async () => {
+            const params = new URLSearchParams();
+            params.set("page", String(page));
+            params.set("limit", String(pageSize));
+
+            switch(filter.type) {
+                case "search":
+                    params.set("professorId", filter.id);
+                    break;
+                case "name":
+                    params.set("name", filter.name);
+                    break;
+                case "all":
+                    break;
+            }
+            return await get<PaginatedProfessors>(
+                `/professors?${params.toString()}`
+            );
+        },
+        placeholderData: keepPreviousData,
     });
 }
 

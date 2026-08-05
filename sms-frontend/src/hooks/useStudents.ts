@@ -1,7 +1,7 @@
 // useStudents.ts provides React Query hooks for student CRUD operations.
 // It keeps the UI logic separate from HTTP details.
 import axios from "axios";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { api, get, post, put } from "../lib/axios"
 import type { Student, StudentInput } from "../types";
 
@@ -11,6 +11,20 @@ export type StudentFilter =
     | { type: "honors" }
     | { type: "search"; studentId: number }
     | { type: "name"; name: string};
+
+export interface StudentPaginationOptions {
+    page: number; 
+    pageSize: number;
+    filter: StudentFilter;
+}
+
+export interface PaginatedStudents {
+    data: Student[];
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+}
     
 export function useStudents(filter: StudentFilter = { type: "all"}){
     // React Query fetches students from the backend and caches the result.
@@ -44,10 +58,59 @@ export function useStudents(filter: StudentFilter = { type: "all"}){
 
                     return await get<Student[]>(`/students/search?name=${query}`);
                 }
+                case "all":
                 default:
                     return await get<Student[]>("/students");
             }
         },
+    });
+}
+
+// paginated student list 
+export function useStudentsPaginated({
+    page, pageSize, filter,
+}: StudentPaginationOptions) {
+    return useQuery<PaginatedStudents>({
+        queryKey: [
+            "students", "paginated", page, pageSize, filter,
+        ],
+
+        queryFn: async () => {
+            const params = new URLSearchParams();
+            params.set("page", String(page));
+            params.set("limit", String(pageSize));
+
+            switch (filter.type) {
+                case "grade":
+                    params.set(
+                        "grade", 
+                        String(filter.grade)
+                    );
+                    break;
+                case "honors":
+                    params.set("honors", "true");
+                    break;
+                case "search":
+                    params.set(
+                        "studentId",
+                        String(filter.studentId)
+                    );
+                    break;
+                case "name":
+                    params.set(
+                        "name",
+                        filter.name
+                    );
+                    break;
+                case "all":
+                    break;
+                }
+            return await get<PaginatedStudents>(
+                `/students?${params.toString()}`
+            );
+        },
+
+        placeholderData: keepPreviousData,
     });
 }
 

@@ -10,6 +10,7 @@ import (
 	"sms-backend/internal/dto"
 	"sms-backend/internal/helpers"
 	"sms-backend/internal/services"
+	"sms-backend/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,25 +26,139 @@ func NewStudentHandler(service services.StudentService) *StudentHandler {
 	}
 }
 
-// GET /students returns every student record.
+// GET /students
+
+//  Without pagination:
+// GET /students
+
+// With pagination:
+// GET /students?page=1&limit=10
+
+// Optional filters:
+// ?grade=3
+// ?honors=true
+// ?studentId=1001
+// ?name=John
 func (h *StudentHandler) GetAll(c *gin.Context) {
 
-	students, err := h.service.GetAll()
+	pageParam := c.Query("page")
+	limitParam := c.Query("limit")
+
+	if pageParam == "" && limitParam == "" {
+		students, err := h.service.GetAll()
+
+		if err != nil {
+			helpers.ErrorResponse(
+				c,
+				http.StatusInternalServerError,
+				err.Error(),
+			)
+			return
+		}
+
+		helpers.SuccessResponse(
+			c,
+			http.StatusOK,
+			students,
+		)
+		return
+	}
+
+	page := 1
+	limit := 5
+
+	if pageParam != "" {
+		parsedPage, err := strconv.Atoi(pageParam)
+
+		if err != nil || parsedPage < 1 {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"page must be a positive integer",
+			)
+			return
+		}
+		page = parsedPage
+	}
+
+	if limitParam != "" {
+		parsedLimit, err := strconv.Atoi(limitParam)
+
+		if err != nil || parsedLimit < 1 || parsedLimit > 100 {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"limit must be between 1 and 100",
+			)
+			return
+		}
+		limit = parsedLimit
+	}
+
+	var grade *int 
+	if value := c.Query("grade"); value != "" {
+		parsedGrade, err := strconv.Atoi(value)
+
+		if err != nil {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"invalid grade",
+			)
+			return
+		}
+		grade = &parsedGrade
+	}
+
+	honors := c.Query("honors") == "true"
+
+	var studentID *int
+
+	if value := c.Query("studentId"); value != "" {
+		parsedStudentID, err := strconv.Atoi(value)
+		
+		if err != nil {
+			helpers.ErrorResponse(
+				c,
+				http.StatusBadRequest,
+				"invalid student id",
+			)
+			return
+		}
+		studentID = &parsedStudentID
+	}
+
+	name := c.Query("name")
+
+	students, total, err := h.service.GetPaginated(
+		page, limit, grade, honors, studentID, name,
+	)
 
 	if err != nil {
 		helpers.ErrorResponse(
 			c,
-			http.StatusInternalServerError,
+			http.StatusInternalServerError, 
 			err.Error(),
 		)
 		return
 	}
 
+	totalPages := (total + int64(limit) - 1)/int64(limit)
+
+	response := dto.PaginationResponse[models.Student]{
+		Data: 	 students,
+		Page: page,
+		PageSize: limit,
+		Total: total,
+		TotalPages: totalPages,
+	}
+
 	helpers.SuccessResponse(
 		c,
 		http.StatusOK,
-		students,
+		response,
 	)
+
 }
 
 // GET /students/:id

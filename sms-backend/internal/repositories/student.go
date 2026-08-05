@@ -10,6 +10,9 @@ import (
 
 type StudentRepository interface {
 	GetAll() ([]models.Student, error)
+	GetPaginated( page int, limit int, 
+		grade *int, honors bool, studentID *int, 
+		name string, ) ([]models.Student, int64, error)
 	GetByID(id int) (*models.Student, error)
 	Create(student *models.Student) error
 	Update(student *models.Student) error
@@ -38,6 +41,43 @@ func (r *studentRepository) GetAll() ([]models.Student, error) {
 
 	return students, err
 }
+
+func (r *studentRepository) GetPaginated(page int, limit int, grade *int, honors bool, studentID *int,
+	name string) ([]models.Student, int64, error) {
+		var students []models.Student
+		var total int64
+		query := r.db.Model(&models.Student{})
+
+		if grade != nil {
+			query = query.Where("grade = ?", *grade)
+		}
+
+		if honors {
+		query = query.Where("gpa >= ?", 3.5)
+		}
+
+		if studentID != nil {
+			query = query.Where("name LIKE ?", "%"+name+"%")
+		}
+
+		if err := query.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+
+		offset := (page - 1) * limit
+
+		if err := query.
+			Order("id").
+			Offset(offset).
+			Limit(limit).
+			Find(&students).Error; err != nil {
+				return nil, 0, err
+		}
+
+		return students, total, nil
+
+	}
+
 
 func (r *studentRepository) GetByID(id int) (*models.Student, error) {
 

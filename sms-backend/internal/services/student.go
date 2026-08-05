@@ -15,6 +15,16 @@ import (
 
 type StudentService interface {
 	GetAll() ([]models.Student, error)
+
+	GetPaginated(
+		page int,
+		limit int,
+		grade *int, 
+		honors bool,
+		studentID *int,
+		name string,
+	) ([]models.Student, int64, error)
+
 	GetByID(id int) (*models.Student, error)
 
 	Create(dto.CreateStudentRequest) error
@@ -47,6 +57,19 @@ func NewStudentService(repo repositories.StudentRepository, eRepo repositories.E
 
 func (s *studentService) GetAll() ([]models.Student, error) {
 	return s.repository.GetAll()
+}
+
+func (s *studentService) GetPaginated(
+	page int,
+	limit int,
+	grade *int,
+	honors bool,
+	studentID *int,
+	name string,
+) ([]models.Student, int64, error) {
+	return s.repository.GetPaginated(
+		page, limit, grade, honors, studentID, name,
+	)
 }
 
 func (s *studentService) GetByID(id int) (*models.Student, error) {

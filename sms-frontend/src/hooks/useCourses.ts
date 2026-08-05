@@ -111,6 +111,7 @@ export function useCreateCourse() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["courses"] });
+            queryClient.invalidateQueries({ queryKey: ["enrollments"] });
         },
     });
 }
@@ -132,6 +133,7 @@ export function useUpdateCourses() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["courses"] });
+            queryClient.invalidateQueries({ queryKey: ["enrollments"] });
         },
     });
 }

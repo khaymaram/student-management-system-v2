@@ -2,7 +2,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useDeleteProfessor, useProfessors, useUpdateProfessor, useCreateProfessor, useProfessorsPaginated, type ProfessorFilter } from "../../hooks/useProfessors";
+import { useDeleteProfessor, useUpdateProfessor, useCreateProfessor, useProfessorsPaginated, type ProfessorFilter } from "../../hooks/useProfessors";
 import { apiErrorMessage } from "../../lib/axios";
 import { ProfessorInputSchema, type Professor, type ProfessorInput } from "../../types";
 import PageHeader from "../ui/PageHeader";

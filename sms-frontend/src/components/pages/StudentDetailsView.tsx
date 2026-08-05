@@ -5,7 +5,7 @@
 // body: table with courses enrolled: id, title, course grade, unenroll from course button
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Trash2, Plus, HandCoins, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, Trash2, Plus, HandCoins, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { EnrollmentModal } from "./EnrollmentModal";
 import Modal from "../ui/Modal";
@@ -38,6 +38,7 @@ import {
 } from "../../hooks/useEnrollments";
 
 import { useStudent } from "../../hooks/useStudents";
+import { useProfessors } from "../../hooks/useProfessors";
 
 import { useFinance, useUpdateFinance } from "../../hooks/useFinances";
 
@@ -76,6 +77,7 @@ export default function StudentDetailsView() {
     const navigate = useNavigate();
     const parsedStudentId = studentId ? Number(studentId) : null;
     const [enrollmentStudent, setEnrollmentStudent] = useState<Student | null>(null);
+    const { data: professors = [] } = useProfessors();
 
     const {
         data: studentData,
@@ -310,6 +312,10 @@ export default function StudentDetailsView() {
                                     </TableHead>
 
                                     <TableHead>
+                                        Schedule
+                                    </TableHead>
+
+                                    <TableHead>
                                         Course Grade
                                     </TableHead>
 
@@ -327,6 +333,10 @@ export default function StudentDetailsView() {
                                     <RosterRow
                                         key={enrollment.courseCode}
                                         enrollment={enrollment}
+                                        professorName={
+                                            enrollment.course?.professor?.name ??
+                                            professors.find((professor) => professor.id === enrollment.course?.professorId)?.name
+                                        }
                                     />
                                 ))}
 
@@ -388,14 +398,7 @@ export default function StudentDetailsView() {
                             {finance.remaining === 0 ? "Paid" : "Pay"}
                         </Button>
                     </Card>
-                    <Card padding={"responsive"}>
-                        <div>
-                            Pie Chart with Remaining, Paid, Scholarship 
-                        </div>
-                        <div>
-                            Or course schedule (once times are added)
-                        </div>
-                    </Card>
+                    <WeeklyCourseSchedule enrollments={enrollments ?? []} />
                 </div>
 
             )}
@@ -427,8 +430,10 @@ export default function StudentDetailsView() {
 
 function RosterRow({
     enrollment,
+    professorName,
 }: {
     enrollment: Enrollment;
+    professorName?: string;
 }) {
     const [gradeInput, setGradeInput] = useState(
         enrollment.grade ?? ""
@@ -495,12 +500,34 @@ function RosterRow({
             </TableCell>
 
             <TableCell>
-                {/* the professor name is not showing up */}
-                {enrollment.course?.professor?.name}
+                {professorName ?? <span className="text-muted-foreground">TBD</span>}
             </TableCell>
 
             <TableCell>
                 {enrollment.course?.credits ?? "—"}
+            </TableCell>
+
+            <TableCell>
+                {enrollment.course ? (
+                    <div className="flex min-w-48 flex-col gap-1.5">
+                        <div className="flex gap-1">
+                            {(enrollment.course.meetingDays ?? []).map((day) => (
+                                <span
+                                    key={day}
+                                    className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-[#DBEAFE] px-1.5 text-xs font-semibold text-[#1D4ED8]"
+                                >
+                                    {day}
+                                </span>
+                            ))}
+                        </div>
+                        <span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
+                            <CalendarClock className="size-3.5" />
+                            {enrollment.course.startTime
+                                ? `${formatCourseTime(enrollment.course.startTime)} – ${formatCourseEndTime(enrollment.course.startTime)}`
+                                : "Schedule not set"}
+                        </span>
+                    </div>
+                ) : "—"}
             </TableCell>
 
             <TableCell>
@@ -577,4 +604,89 @@ function RosterRow({
 
         </TableRow>
     );
+}
+
+function formatCourseTime(value: string) {
+    const [hour, minute] = value.split(":").map(Number);
+    const suffix = hour >= 12 ? "PM" : "AM";
+    return `${hour % 12 || 12}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+const scheduleDays = [
+    { key: "M", label: "Monday" },
+    { key: "T", label: "Tuesday" },
+    { key: "W", label: "Wednesday" },
+    { key: "Th", label: "Thursday" },
+    { key: "F", label: "Friday" },
+] as const;
+
+function WeeklyCourseSchedule({ enrollments }: { enrollments: Enrollment[] }) {
+    const courseAccents = new Map(
+        [...new Set(enrollments.map((enrollment) => enrollment.courseCode))]
+            .sort()
+            .map((courseCode, index) => [courseCode, rainbowAccents[index % rainbowAccents.length]])
+    );
+
+    return (
+        <Card padding="responsive">
+            <div className="mb-4 flex items-center gap-2">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#1D4ED8]">
+                    <CalendarClock className="size-4" />
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold">Weekly Schedule</h2>
+                    <p className="text-xs text-muted-foreground">All enrolled courses, Monday through Friday</p>
+                </div>
+            </div>
+
+            <div className="divide-y rounded-lg border bg-background px-3">
+                {scheduleDays.map((day) => {
+                    const courses = enrollments
+                        .filter((enrollment) => enrollment.course?.meetingDays?.includes(day.key))
+                        .sort((a, b) => (a.course?.startTime ?? "").localeCompare(b.course?.startTime ?? ""));
+
+                    return (
+                        <div key={day.key} className="grid min-h-14 grid-cols-[5.5rem_1fr] items-center gap-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                                <span className="rounded-md bg-[#DBEAFE] px-1.5 py-0.5 text-xs font-bold text-[#1D4ED8]">
+                                    {day.key}
+                                </span>
+                                <span className="text-xs font-medium">{day.label.slice(0, 3)}</span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {courses.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">No classes</p>
+                                ) : courses.map((enrollment) => {
+                                    const accent = courseAccents.get(enrollment.courseCode) ?? rainbowAccents[4];
+                                    return (
+                                        <div
+                                            key={enrollment.courseCode}
+                                            className="min-w-28 rounded-md border-l-2 px-2 py-1.5"
+                                            style={{ backgroundColor: accent.bg, borderColor: accent.text }}
+                                        >
+                                            <p className="truncate text-xs font-semibold" style={{ color: accent.text }} title={enrollment.course?.title}>
+                                                {enrollment.courseCode}
+                                            </p>
+                                            <p className="mt-0.5 whitespace-nowrap text-[11px]" style={{ color: accent.text }}>
+                                                {enrollment.course?.startTime
+                                                    ? `${formatCourseTime(enrollment.course.startTime)} – ${formatCourseEndTime(enrollment.course.startTime)}`
+                                                    : "Time not set"}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </Card>
+    );
+}
+
+function formatCourseEndTime(value: string) {
+    const [hour, minute] = value.split(":").map(Number);
+    const total = hour * 60 + minute + 60;
+    return formatCourseTime(`${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`);
 }

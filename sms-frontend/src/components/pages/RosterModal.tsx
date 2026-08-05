@@ -94,7 +94,7 @@ export function RosterModal({ course, onClose }: RosterModalProps) {
                                     </div>
                                 ) : (
                                     availableStudents.map((student) => (
-                                        <SelectItem key={student.studentId} value={student.name}>
+                                        <SelectItem key={student.studentId} value={String(student.studentId)}>
                                             {student.name}
                                         </SelectItem>
                                     ))

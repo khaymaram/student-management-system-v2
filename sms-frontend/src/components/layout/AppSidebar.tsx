@@ -42,7 +42,7 @@ const AppSidebar = () => {
             {/* Collapse Toggle */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-sidebar-accent transition-all duration-200 hover:scale-110 shrink-0"
+              className="flex cursor-pointer items-center justify-center w-10 h-10 rounded-lg hover:bg-sidebar-accent transition-all duration-200 hover:scale-110 shrink-0"
               aria-label="Toggle sidebar width"
             >
               {isCollapsed ? (
@@ -72,7 +72,7 @@ const AppSidebar = () => {
             <Link
               to="/account"
               aria-label="Open user account"
-              className={`flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-sidebar-accent ${isCollapsed ? 'justify-center' : ''}`}
+              className={`flex cursor-pointer items-center gap-2 rounded-lg p-1 transition-colors hover:bg-sidebar-accent ${isCollapsed ? 'justify-center' : ''}`}
             >
               <div className="w-10 h-10 bg-sidebar-accent rounded-full flex items-center justify-center text-sidebar-foreground font-semibold shrink-0">
                 <UserCircle size={20} />

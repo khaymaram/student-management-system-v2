@@ -72,7 +72,7 @@ const SidebarItem = ({ item, isCollapsed, level = 0 }: SidebarItemProps) => {
       <button
         onClick={handleClick}
         className={`
-          w-full flex items-center justify-between gap-3 rounded-md
+          w-full cursor-pointer flex items-center justify-between gap-3 rounded-md
           transition-all duration-200
           ${
             isActive

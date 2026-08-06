@@ -157,7 +157,7 @@ function ProfessorWeeklySchedule({ courses }: { courses: Course[] }) {
                                 <p className="text-sm font-semibold">{day.label}</p>
                             </div>
                             <div
-                                className="min-h-[13rem] flex-1 space-y-3 p-3"
+                                className="min-h-[13rem] flex-1 space-y-4 p-3"
                                 style={{ borderRight: day.key === "F" ? undefined : "1px solid var(--border)" }}
                             >
                                 {dayCourses.length === 0 ? (

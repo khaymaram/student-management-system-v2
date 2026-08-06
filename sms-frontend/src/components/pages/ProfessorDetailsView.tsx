@@ -143,7 +143,7 @@ function ProfessorWeeklySchedule({ courses }: { courses: Course[] }) {
             <div className="flex size-10 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#1D4ED8]"><CalendarClock className="size-5" /></div>
             <div><h2 className="text-xl font-semibold">Weekly Schedule</h2><p className="text-sm text-muted-foreground">Teaching schedule, Monday through Friday</p></div>
         </div>
-
+        <br></br>
         <div className="overflow-x-auto rounded-xl border bg-background">
             <div className="grid min-w-[760px] grid-cols-5">
                 {scheduleDays.map((day) => {

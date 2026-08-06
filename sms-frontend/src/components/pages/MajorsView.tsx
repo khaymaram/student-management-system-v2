@@ -100,15 +100,17 @@ export function MajorsView() {
                     <TableCell className="font-medium">{major.name}</TableCell>
                     <TableCell>
                       <div className="flex justify-end">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeMajor(major.id, major.name)}
-                          disabled={isUndeclared || deleteMajor.isPending}
-                          title={isUndeclared ? "Undeclared is required and cannot be deleted" : `Delete ${major.name}`}
-                        >
-                          <Trash2 /> {isUndeclared ? "Required" : "Delete"}
-                        </Button>
+                        {!isUndeclared && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeMajor(major.id, major.name)}
+                            disabled={deleteMajor.isPending}
+                            title={`Delete ${major.name}`}
+                          >
+                            <Trash2 /> Delete
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

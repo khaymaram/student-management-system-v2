@@ -1,4 +1,4 @@
-# GRGI Student Management System
+# Student Management System
 
 A full-stack university administration application for managing students, professors, courses, enrollments, schedules, majors, grades, and finances. The application includes role-based authentication for administrators, students, and professors.
 

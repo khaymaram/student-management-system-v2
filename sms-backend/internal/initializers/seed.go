@@ -16,8 +16,8 @@ func Seed(db *gorm.DB) error {
 	adminSubject, studentSubject, teacherSubject := "ADMIN001", "1122", "P1001"
 	users := []models.User{
 		{Name: "System Administrator", Email: "admin@grgi.edu", PasswordHash: string(adminHash), Role: "admin", SubjectID: &adminSubject},
-		{Name: "Happy Birthday", Email: "student@grgi.edu", PasswordHash: string(studentHash), Role: "student", SubjectID: &studentSubject},
-		{Name: "Ada Lovelace", Email: "teacher@grgi.edu", PasswordHash: string(teacherHash), Role: "professor", SubjectID: &teacherSubject},
+		{Name: "Happy Birthday", Email: "happybirthday1122@grgi.edu", PasswordHash: string(studentHash), Role: "student", SubjectID: &studentSubject},
+		{Name: "Mr Bean", Email: "mrbeanp1001@grgi.edu", PasswordHash: string(teacherHash), Role: "professor", SubjectID: &teacherSubject},
 	}
 	if err := db.Create(&users).Error; err != nil {
 		return err
@@ -26,7 +26,7 @@ func Seed(db *gorm.DB) error {
 		{ID: 1, Name: "Undeclared"},
 		{ID: 2, Name: "Computer Science"},
 		{ID: 3, Name: "Mathematics"},
-		{ID: 4, Name: "Business Administration"},
+		{ID: 4, Name: "Business"},
 		{ID: 5, Name: "Biology"},
 		{ID: 6, Name: "English"},
 	}
@@ -61,13 +61,13 @@ func Seed(db *gorm.DB) error {
 			MeetingDays: []string{"M", "W"}, StartTime: "11:00",
 		},
 		{
-			Title:       "Organization of Programming Languages",
-			Code:        "CMSC330",
+			Title:       "Intro to Psychology",
+			Code:        "PSYC101",
 			Credits:     3,
 			MeetingDays: []string{"T", "Th"}, StartTime: "13:00",
 		},
 	}
-	professors := []models.Professor{{ID: teacherSubject, Name: "Ada Lovelace"}}
+	professors := []models.Professor{{ID: teacherSubject, Name: "Mr Bean"}}
 	if err := db.Create(&professors).Error; err != nil {
 		return err
 	}

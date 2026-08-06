@@ -28,6 +28,7 @@ import {
 
 import { apiErrorMessage } from "../../lib/axios";
 import { useMajors } from "../../hooks/useMajors";
+import { useFinance, useUpdateFinance } from "../../hooks/useFinances";
 
 import {
   StudentInputSchema,
@@ -135,7 +136,15 @@ export function StudentsView() {
 
   const updateStudent = useUpdateStudent();
 
+  const { data: editingFinance } = useFinance(editingStudent?.studentId ?? null);
+  const updateFinance = useUpdateFinance();
+
   const { data: majors = [], isLoading: majorsLoading } = useMajors();
+
+  useEffect(() => {
+    if (!editingFinance) return;
+    setEditForm((current) => ({ ...current, isInState: editingFinance.isInState }));
+  }, [editingFinance]);
 
   function handleDelete(student: Student) {
     if (!window.confirm(`Remove ${student.name} (ID ${student.studentId}) from the roster?`)) {
@@ -231,7 +240,7 @@ export function StudentsView() {
     });
   }
 
-  function editStudent(e: FormEvent) {
+  async function editStudent(e: FormEvent) {
     e.preventDefault();
 
     if (!editingStudent) return;
@@ -254,19 +263,28 @@ export function StudentsView() {
 
     setEditFieldErrors({});
 
-    updateStudent.mutate(
-      {
+    try {
+      await Promise.all([
+        updateStudent.mutateAsync({
         studentId: editingStudent.studentId,
         input: result.data,
-      },
-      {
-        onSuccess: () => {
-          toast.success(`Updated ${result.data.name}.`);
-          closeEditStudentModal();
-        },
-        onError: (err) => toast.error(apiErrorMessage(err)),
-      }
-    );
+        }),
+        editingFinance
+          ? updateFinance.mutateAsync({
+              studentId: editingStudent.studentId,
+              input: {
+                scholarship: editingFinance.scholarship,
+                paid: editingFinance.paid,
+                isInState: editForm.isInState,
+              },
+            })
+          : Promise.resolve(),
+      ]);
+      toast.success(`Updated ${result.data.name}.`);
+      closeEditStudentModal();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    }
   }
 
   return (
@@ -643,23 +661,32 @@ export function StudentsView() {
             required
           />
 
-          <Input
-            label="Grade"
-            inputMode="numeric"
-            value={
-              editForm.grade
-            }
-            onChange={(e) =>
-              handleEditFormChange(
-                "grade",
-                e.target.value
-              )
-            }
-            error={
-              editFieldErrors.grade
-            }
-            required
-          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label="Grade"
+              inputMode="numeric"
+              value={editForm.grade}
+              onChange={(e) => handleEditFormChange("grade", e.target.value)}
+              error={editFieldErrors.grade}
+              required
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-foreground/80">Residency</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={editForm.isInState}
+                onClick={() => setEditForm((current) => ({ ...current, isInState: !current.isInState }))}
+                className={`h-10 w-full rounded-lg border px-3 text-sm font-semibold shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${editForm.isInState
+                  ? "border-[#1D4ED8] bg-[#DBEAFE] text-[#1D4ED8] hover:bg-[#DBEAFE]/75"
+                  : "border-[#6D28D9] bg-[#EDE9FE] text-[#6D28D9] hover:bg-[#EDE9FE]/75"
+                }`}
+              >
+                {editForm.isInState ? "In-state" : "Out-of-state"}
+              </button>
+            </div>
+          </div>
 
           <div>
             <label className="mb-2 block text-sm font-medium" htmlFor="edit-major">
@@ -689,10 +716,10 @@ export function StudentsView() {
             <Button
               type="submit"
               disabled={
-                updateStudent.isPending
+                updateStudent.isPending || updateFinance.isPending
               }
             >
-              {updateStudent.isPending
+              {updateStudent.isPending || updateFinance.isPending
                 ? "Saving..."
                 : "Save Changes"}
             </Button>

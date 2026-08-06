@@ -16,7 +16,7 @@ const AppSidebar = () => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border
+          fixed top-0 left-0 h-screen overflow-x-hidden bg-sidebar text-sidebar-foreground border-r border-sidebar-border
           transition-all duration-500 ease-in-out z-40 will-change-transform
           ${isCollapsed ? 'w-20' : 'w-64'}
         `}
@@ -54,11 +54,7 @@ const AppSidebar = () => {
           </div>
 
           {/* Navigation */}
-          <nav
-            className={`flex-1 overflow-y-auto py-4 scroll-smooth custom-scrollbar ${
-              isCollapsed ? 'overflow-visible' : 'overflow-y-auto'
-            }`}
-          >
+          <nav className="flex-1 overflow-x-hidden overflow-y-auto py-4 scroll-smooth custom-scrollbar">
             {items.map((item, index) => {
               const resolvedItem = user?.role === 'student' && item.label === 'Courses'
                 ? { ...item, path: '/my-courses' }

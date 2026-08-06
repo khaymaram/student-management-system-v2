@@ -52,11 +52,17 @@ func Setup(
 		auth := api.Group("/auth")
 		{
 			auth.GET("/me", authHandler.Me)
+			auth.POST("/logout", authHandler.Logout)
 			auth.PUT("/me", authHandler.UpdateMe)
 			auth.PUT("/password", authHandler.Password)
 			auth.DELETE("/me", authHandler.DeleteMe)
 		}
-		api.GET("/majors", majorHandler.GetAll)
+		majors := api.Group("/majors")
+		{
+			majors.GET("", majorHandler.GetAll)
+			majors.POST("", majorHandler.Create)
+			majors.DELETE("/:id", majorHandler.Delete)
+		}
 
 		enrollments := api.Group("/enrollments")
 		{

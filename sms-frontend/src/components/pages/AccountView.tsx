@@ -20,7 +20,7 @@ export default function AccountView() {
   async function saveProfile(e: FormEvent) { e.preventDefault(); try { await updateProfile(name, email); toast.success("Profile updated."); } catch (error) { toast.error(apiErrorMessage(error)); } }
   async function resetPassword(e: FormEvent) { e.preventDefault(); try { await changePassword(currentPassword, newPassword); setCurrentPassword(""); setNewPassword(""); toast.success("Password updated."); } catch (error) { toast.error(apiErrorMessage(error)); } }
   async function removeAccount() { if (!window.confirm("Permanently delete your account? This cannot be undone.")) return; try { await deleteAccount(deletePassword); navigate("/login", { replace: true }); } catch (error) { toast.error(apiErrorMessage(error)); } }
-  function signOut() { logout(); navigate("/login", { replace: true }); }
+  async function signOut() { await logout(); navigate("/login", { replace: true }); }
 
   return <div><PageHeader title="User Account" description="Manage your profile and security settings." actions={<Button variant="outline" onClick={signOut}><LogOut /> Log out</Button>} />
     <div className="grid gap-4 lg:grid-cols-2">

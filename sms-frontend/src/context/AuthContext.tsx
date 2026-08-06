@@ -6,7 +6,7 @@ interface AuthContextValue {
   user: UserAccount | null;
   loading: boolean;
   login: (identifier: string, password: string) => Promise<UserAccount>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (name: string, email: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
@@ -30,10 +30,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(result.user);
     return result.user;
   }
-  function logout() { localStorage.removeItem(TOKEN_KEY); setUser(null); }
+  function clearSession() { localStorage.removeItem(TOKEN_KEY); setUser(null); }
+  async function logout() {
+    try { await post("/auth/logout"); }
+    finally { clearSession(); }
+  }
   async function updateProfile(name: string, email: string) { const updated = await put<UserAccount>("/auth/me", { name, email }); setUser(updated); }
   async function changePassword(currentPassword: string, newPassword: string) { await put("/auth/password", { currentPassword, newPassword }); }
-  async function deleteAccount(password: string) { await api.delete("/auth/me", { data: { password } }); logout(); }
+  async function deleteAccount(password: string) { await api.delete("/auth/me", { data: { password } }); clearSession(); }
 
   return <AuthContext.Provider value={{ user, loading, login, logout, updateProfile, changePassword, deleteAccount }}>{children}</AuthContext.Provider>;
 }

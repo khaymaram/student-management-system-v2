@@ -187,9 +187,9 @@ export default function StudentDetailsView({ section = "all" }: { section?: Stud
                     </h1>
 
                     <p className="text-lg text-muted-foreground font-mono">
-                        Student ID: {student.studentId}
+                        Student ID: {student.studentId} | Major: {student.major?.name}
                     </p>
-
+                    
                 </div>
             )}
 
@@ -264,7 +264,7 @@ export default function StudentDetailsView({ section = "all" }: { section?: Stud
                                 {student.name} is not enrolled in any courses.
                             </p>
 
-                            
+
                             <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
                                 Add Course
@@ -287,7 +287,7 @@ export default function StudentDetailsView({ section = "all" }: { section?: Stud
                                 {student.name}'s Courses
                             </h2>
 
-                            
+
 
                             <Button onClick={() => setEnrollmentStudent(student)}>
                                 <Plus />
@@ -396,12 +396,12 @@ export default function StudentDetailsView({ section = "all" }: { section?: Stud
 
                         <br></br>
                         {canPayFees && <Button
-                        type="button" 
-                        variant={finance.remaining === 0 ? "outline" : "default"}
-                        onClick={() => openPayModal(finance)}
-                        disabled={finance.remaining === 0}>
-                            {finance.remaining > 0 ? 
-                                            <HandCoins /> : <CheckCircle2 /> }
+                            type="button"
+                            variant={finance.remaining === 0 ? "outline" : "default"}
+                            onClick={() => openPayModal(finance)}
+                            disabled={finance.remaining === 0}>
+                            {finance.remaining > 0 ?
+                                <HandCoins /> : <CheckCircle2 />}
                             {finance.remaining === 0 ? "Paid" : "Pay"}
                         </Button>}
                     </Card>

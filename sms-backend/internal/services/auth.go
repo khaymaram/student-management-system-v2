@@ -21,6 +21,7 @@ type AuthClaims struct {
 	UserID    uint   `json:"sub"`
 	Role      string `json:"role"`
 	SubjectID string `json:"subjectId,omitempty"`
+	IssuedAt  int64  `json:"iat"`
 	ExpiresAt int64  `json:"exp"`
 }
 
@@ -51,7 +52,8 @@ func (s *AuthService) Login(identifier, password string) (*models.User, string, 
 	if user.SubjectID != nil {
 		subject = *user.SubjectID
 	}
-	token, err := s.sign(AuthClaims{UserID: user.ID, Role: user.Role, SubjectID: subject, ExpiresAt: time.Now().Add(12 * time.Hour).Unix()})
+	now := time.Now()
+	token, err := s.sign(AuthClaims{UserID: user.ID, Role: user.Role, SubjectID: subject, IssuedAt: now.UnixNano(), ExpiresAt: now.Add(12 * time.Hour).Unix()})
 	return &user, token, err
 }
 
@@ -110,7 +112,8 @@ func (s *AuthService) UpdateUser(id uint, name, email string) (*models.User, err
 		user.Email = strings.ToLower(strings.TrimSpace(email))
 	}
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(user).Error; err != nil {
+		updates := map[string]interface{}{"name": user.Name, "email": user.Email}
+		if err := tx.Model(&models.User{}).Where("id = ?", user.ID).UpdateColumns(updates).Error; err != nil {
 			return err
 		}
 
@@ -198,7 +201,18 @@ func (s *AuthService) Parse(token string) (*AuthClaims, error) {
 	if json.Unmarshal(payload, &claims) != nil || claims.ExpiresAt < time.Now().Unix() {
 		return nil, errors.New("expired token")
 	}
+	var user models.User
+	if err := s.db.Select("updated_at").First(&user, claims.UserID).Error; err != nil {
+		return nil, errors.New("invalid session")
+	}
+	if claims.IssuedAt == 0 || claims.IssuedAt <= user.UpdatedAt.UnixNano() {
+		return nil, errors.New("session has been logged out")
+	}
 	return &claims, nil
+}
+
+func (s *AuthService) RevokeUserTokens(userID uint) error {
+	return s.db.Model(&models.User{}).Where("id = ?", userID).UpdateColumn("updated_at", time.Now()).Error
 }
 
 func (s *AuthService) sign(claims AuthClaims) (string, error) {

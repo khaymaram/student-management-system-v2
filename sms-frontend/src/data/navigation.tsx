@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { GraduationCap, BookOpen, UserCheck2, LayoutDashboard, CircleDollarSign, CalendarClock} from 'lucide-react';
+import { GraduationCap, BookOpen, UserCheck2, LayoutDashboard, CircleDollarSign, CalendarClock, LibraryBig} from 'lucide-react';
 import type { UserRole } from '../types';
 
 export interface NavigationItem {
@@ -34,6 +34,12 @@ export const navigationItems: NavigationItem[] = [
     path: '/professors',
     icon: <UserCheck2 size={20}/>
     ,roles: ['admin']
+  },
+  {
+    label: 'Majors',
+    path: '/majors',
+    icon: <LibraryBig size={20}/>,
+    roles: ['admin']
   },
   {
     label: 'Finances',

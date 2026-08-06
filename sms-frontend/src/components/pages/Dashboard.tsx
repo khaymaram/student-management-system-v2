@@ -9,6 +9,7 @@ import { useCourses } from "../../hooks/useCourses";
 import { useProfessors } from "../../hooks/useProfessors";
 import { useAllEnrollments } from "../../hooks/useEnrollments";
 import { Badge } from "../ui/Badge";
+import type { CSSProperties } from "react";
 
 const rainbowAccents = [
     { bg: '#FEE2E2', chart: '#F15757', text: '#B91C1C' },
@@ -229,10 +230,15 @@ export function Dashboard() {
                     const accent = stat.accent;
 
                     return (
-                        <Card key={stat.label} padding="lg" className="space-y-4">
+                        <Card
+                            key={stat.label}
+                            padding="lg"
+                            className="group space-y-4 transition-all duration-200 ease-out hover:-translate-y-1 hover:bg-[var(--stat-hover-bg)] hover:shadow-lg"
+                            style={{ "--stat-hover-bg": accent.bg } as CSSProperties}
+                        >
                             <div
-                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
-                                style={{ backgroundColor: accent.bg, color: accent.text }}
+                                className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--stat-hover-bg)] font-bold transition-colors duration-200 group-hover:bg-white"
+                                style={{ color: accent.text }}
                             >
                                 <Icon size={20} />
                             </div>

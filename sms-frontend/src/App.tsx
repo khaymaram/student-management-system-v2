@@ -13,6 +13,7 @@ import { ProfessorsView } from "./components/pages/ProfessorsView";
 import ProfessorDetailsView from "./components/pages/ProfessorDetailsView";
 import { Dashboard } from "./components/pages/Dashboard";
 import { FinancesView } from "./components/pages/FinancesView";
+import { MajorsView } from "./components/pages/MajorsView";
 
 function HomeRedirect() { const { user } = useAuth(); if (!user) return <Navigate to="/login" replace />; return <Navigate to={user.role === "student" ? "/my-courses" : user.role === "professor" ? "/professor-dashboard" : "/dashboard"} replace />; }
 
@@ -22,7 +23,7 @@ function AppRoutes() {
     <Route element={<ProtectedRoute />}><Route element={<AppLayout />}>
       <Route index element={<HomeRedirect />} /><Route path="/account" element={<AccountView />} />
       <Route element={<ProtectedRoute roles={["admin"]} />}>
-        <Route path="/dashboard" element={<Dashboard />} /><Route path="/roster" element={<StudentsView />} /><Route path="/professors" element={<ProfessorsView />} /><Route path="/finances" element={<FinancesView />} />
+        <Route path="/dashboard" element={<Dashboard />} /><Route path="/roster" element={<StudentsView />} /><Route path="/professors" element={<ProfessorsView />} /><Route path="/majors" element={<MajorsView />} /><Route path="/finances" element={<FinancesView />} />
       </Route>
       <Route element={<ProtectedRoute roles={["admin", "student"]} />}><Route path="/roster/:studentId" element={<StudentDetailsView />} /></Route>
       <Route element={<ProtectedRoute roles={["student"]} />}><Route path="/my-courses" element={<StudentDetailsView section="courses" />} /><Route path="/my-finances" element={<StudentDetailsView section="finances" />} /><Route path="/my-schedule" element={<StudentDetailsView section="schedule" />} /></Route>

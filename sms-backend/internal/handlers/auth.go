@@ -12,6 +12,13 @@ type AuthHandler struct{ service *services.AuthService }
 func NewAuthHandler(service *services.AuthService) *AuthHandler {
 	return &AuthHandler{service: service}
 }
+func (h *AuthHandler) Logout(c *gin.Context) {
+	if err := h.service.RevokeUserTokens(c.GetUint("userID")); err != nil {
+		helpers.ErrorResponse(c, http.StatusUnauthorized, "invalid or expired session")
+		return
+	}
+	helpers.SuccessResponse(c, http.StatusOK, "logged out")
+}
 
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req struct {

@@ -44,10 +44,12 @@ import { apiErrorMessage } from "../../lib/axios";
 import type { Course, Enrollment } from "../../types";
 
 import { RosterModal } from "./RosterModal";
+import { useAuth } from "../../context/AuthContext";
 
 const GRADE_OPTIONS = ["A", "B", "C", "D", "F"] as const;
 
 export default function CourseDetailsView() {
+    const { user } = useAuth();
     const { courseCode } = useParams();
     const navigate = useNavigate();
     const {
@@ -110,11 +112,11 @@ export default function CourseDetailsView() {
             {/* Back Button */}
             <Button
                 variant="outline"
-                onClick={() => navigate("/courses")}
+                onClick={() => navigate(user?.role === "professor" ? "/professor-dashboard" : "/courses")}
                 className="w-fit"
             >
                 <ArrowLeft />
-                Back to Courses
+                {user?.role === "professor" ? "Back to Dashboard" : "Back to Courses"}
             </Button>
 
             {/* Course Header */}

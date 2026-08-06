@@ -21,6 +21,7 @@ import {
   SelectValue
 } from "../ui/Select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../ui/Table";
+import { useAuth } from "../../context/AuthContext";
 
 type FilterMode = "all" | "credits" | "title" | "professorId" | "code";
 
@@ -62,6 +63,8 @@ function CourseSchedule({ course }: { course: Course }) {
 }
 
 export function CoursesView() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const emptyForm = { title: "", credits: "", code: "", professorId: "", meetingDays: [] as string[], startTime: "" };
 
   const [page, setPage] = useState(1);
@@ -75,7 +78,7 @@ export function CoursesView() {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyForm);
-  const { data: professors } = useProfessors();
+  const { data: professors } = useProfessors({ type: "all" }, isAdmin);
 
   const [addFieldErrors, setAddFieldErrors] =
     useState<Partial<Record<keyof CourseInput, string>>>({});
@@ -224,14 +227,14 @@ export function CoursesView() {
   return (
     <div>
       <PageHeader
-        title="Course Directory"
-        description="View, filter, edit, add or remove courses."
-        actions={
+        title={user?.role === "professor" ? "My Courses" : "Course Directory"}
+        description={user?.role === "professor" ? "View the courses you teach and manage their students." : "View, filter, edit, add or remove courses."}
+        actions={isAdmin ? (
           <Button onClick={openAddCourseModal}>
             <Plus />
             Add a Course
           </Button>
-        }
+        ) : undefined}
       />
 
       <Card padding="responsive" className="mb-6">
@@ -251,7 +254,7 @@ export function CoursesView() {
                 <SelectItem value="all">All courses</SelectItem>
                 <SelectItem value="credits">By credits</SelectItem>
                 <SelectItem value="title">Search by course title</SelectItem>
-                <SelectItem value="professorId">Search by professor</SelectItem>
+                {isAdmin && <SelectItem value="professorId">Search by professor</SelectItem>}
                 <SelectItem value="code">Search by course code</SelectItem>
               </SelectContent>
             </Select>
@@ -354,14 +357,14 @@ export function CoursesView() {
                   <TableHead>Professor</TableHead>
                   <TableHead>Credits</TableHead>
 				  <TableHead>Schedule</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {courses.map((course) =>
                 (
                   <TableRow key={course.code}>
-                    <TableCell>
+                    {isAdmin && <TableCell>
                       <Link
                         to={`/courses/${course.code}`}
                         className="inline-block"
@@ -373,7 +376,7 @@ export function CoursesView() {
                           {course.code}
                         </Badge>
                       </Link>
-                    </TableCell>
+                    </TableCell>}
                     <TableCell className="font-medium">{course.title}</TableCell>
                     <TableCell>
                       {course.professor?.name ?? "TBD"}
@@ -420,7 +423,7 @@ export function CoursesView() {
 
       )}
 
-      <Modal isOpen={isAddModalOpen} onClose={closeAddCourseModal} title="Add a Course">
+      {isAdmin && <Modal isOpen={isAddModalOpen} onClose={closeAddCourseModal} title="Add a Course">
         <form className="space-y-4" onSubmit={addCourse}>
           <Input
             label="Course Title"
@@ -495,8 +498,8 @@ export function CoursesView() {
             </Button>
           </div>
         </form>
-      </Modal>
-      <Modal
+      </Modal>}
+      {isAdmin && <Modal
         isOpen={!!editingCourse}
         onClose={closeEditCourseModal}
         title="Edit Course"
@@ -581,7 +584,7 @@ export function CoursesView() {
             </Button>
           </div>
         </form>
-      </Modal>
+      </Modal>}
     </div>
   );
 }

@@ -38,7 +38,7 @@ import {
 } from "../../hooks/useEnrollments";
 
 import { useStudent } from "../../hooks/useStudents";
-import { useProfessors } from "../../hooks/useProfessors";
+import { useAuth } from "../../context/AuthContext";
 
 import { useFinance, useUpdateFinance } from "../../hooks/useFinances";
 
@@ -72,12 +72,19 @@ function getTotalCredits(enrollments: Enrollment[] | undefined) {
     );
 }
 
-export default function StudentDetailsView() {
+type StudentDetailsSection = "all" | "courses" | "finances" | "schedule";
+
+export default function StudentDetailsView({ section = "all" }: { section?: StudentDetailsSection }) {
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin";
+    const canPayFees = isAdmin || user?.role === "student";
+    const showCourses = section === "all" || section === "courses";
+    const showFinances = section === "all" || section === "finances";
+    const showSchedule = section === "all" || section === "schedule";
     const { studentId } = useParams();
     const navigate = useNavigate();
-    const parsedStudentId = studentId ? Number(studentId) : null;
+    const parsedStudentId = studentId ? Number(studentId) : user?.role === "student" && user.subjectId ? Number(user.subjectId) : null;
     const [enrollmentStudent, setEnrollmentStudent] = useState<Student | null>(null);
-    const { data: professors = [] } = useProfessors();
 
     const {
         data: studentData,
@@ -150,7 +157,7 @@ export default function StudentDetailsView() {
         [enrollments]
     );
 
-    if (!studentId) {
+    if (parsedStudentId === null || Number.isNaN(parsedStudentId)) {
         return (
             <div className="p-6">
                 <p>Student not found.</p>
@@ -162,14 +169,14 @@ export default function StudentDetailsView() {
         <div className="space-y-6">
 
             {/* Back Button */}
-            <Button
+            {isAdmin && <Button
                 variant="outline"
                 onClick={() => navigate("/roster")}
                 className="w-fit"
             >
                 <ArrowLeft />
                 Back to Roster
-            </Button>
+            </Button>}
 
             {/* Course Header */}
             {!studentLoading && student && (
@@ -187,7 +194,7 @@ export default function StudentDetailsView() {
             )}
 
             {/* Statistics */}
-            {!studentLoading && student && (
+            {showCourses && !studentLoading && student && (
                 <Card padding="responsive">
 
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
@@ -239,7 +246,7 @@ export default function StudentDetailsView() {
             )}
 
             {/* Loading */}
-            {enrollmentsLoading && (
+            {showCourses && enrollmentsLoading && (
                 <Card padding="lg">
                     <p className="text-muted-foreground">
                         Loading enrollments...
@@ -248,7 +255,7 @@ export default function StudentDetailsView() {
             )}
 
             {/* Empty */}
-            {!enrollmentsLoading && student &&
+            {showCourses && !enrollmentsLoading && student &&
                 (!enrollments || enrollments.length === 0) && (
                     <Card padding="lg">
 
@@ -268,7 +275,7 @@ export default function StudentDetailsView() {
                 )}
 
             {/* Roster */}
-            {!enrollmentsLoading &&
+            {showCourses && !enrollmentsLoading &&
                 enrollments && student &&
                 enrollments.length > 0 && (
 
@@ -334,9 +341,9 @@ export default function StudentDetailsView() {
                                         key={enrollment.courseCode}
                                         enrollment={enrollment}
                                         professorName={
-                                            enrollment.course?.professor?.name ??
-                                            professors.find((professor) => professor.id === enrollment.course?.professorId)?.name
+                                            enrollment.course?.professor?.name
                                         }
+                                        canEditGrade={isAdmin}
                                     />
                                 ))}
 
@@ -349,8 +356,8 @@ export default function StudentDetailsView() {
                 )}
 
             {/* Finances */}
-            {finance && !financeLoading && student && (
-                <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {showFinances && finance && !financeLoading && student && (
+                <div className={section === "all" ? "mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3" : "mb-4"}>
                     <Card padding={"responsive"}>
                         <div className="mb-6">
                             <h2 className="text-xl font-semibold">
@@ -388,7 +395,7 @@ export default function StudentDetailsView() {
                         </Table>
 
                         <br></br>
-                        <Button 
+                        {canPayFees && <Button
                         type="button" 
                         variant={finance.remaining === 0 ? "outline" : "default"}
                         onClick={() => openPayModal(finance)}
@@ -396,15 +403,30 @@ export default function StudentDetailsView() {
                             {finance.remaining > 0 ? 
                                             <HandCoins /> : <CheckCircle2 /> }
                             {finance.remaining === 0 ? "Paid" : "Pay"}
-                        </Button>
+                        </Button>}
                     </Card>
-                    <WeeklyCourseSchedule enrollments={enrollments ?? []} />
+                    {section === "all" && <WeeklyCourseSchedule enrollments={enrollments ?? []} />}
                 </div>
 
             )}
+
+            {showFinances && !financeLoading && !finance && student && (
+                <div className={section === "all" ? "mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3" : "mb-4"}>
+                    <Card padding="responsive">
+                        <h2 className="text-xl font-semibold">{student.name}'s Finances</h2>
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            No financial record is available for this student.
+                        </p>
+                    </Card>
+                    {section === "all" && <WeeklyCourseSchedule enrollments={enrollments ?? []} />}
+                </div>
+            )}
+            {showSchedule && section === "schedule" && !enrollmentsLoading && (
+                <WeeklyCourseSchedule enrollments={enrollments ?? []} />
+            )}
             {/* fix so that it doesnt require a manual refresh after every payment */}
             <EnrollmentModal student={enrollmentStudent} onClose={() => setEnrollmentStudent(null)} />
-            <Modal isOpen={!!paymentFinance} onClose={closePayModal} title="Pay Student Fees">
+            {canPayFees && <Modal isOpen={!!paymentFinance} onClose={closePayModal} title="Pay Student Fees">
                 <div className="space-y-4">
                     <Input
                         label="Payment Amount ($)"
@@ -423,7 +445,7 @@ export default function StudentDetailsView() {
                         </Button>
                     </div>
                 </div>
-            </Modal>
+            </Modal>}
         </div>
     );
 }
@@ -431,9 +453,11 @@ export default function StudentDetailsView() {
 function RosterRow({
     enrollment,
     professorName,
+    canEditGrade,
 }: {
     enrollment: Enrollment;
     professorName?: string;
+    canEditGrade: boolean;
 }) {
     const [gradeInput, setGradeInput] = useState(
         enrollment.grade ?? ""
@@ -532,7 +556,7 @@ function RosterRow({
 
             <TableCell>
 
-                <div className="flex items-center gap-2">
+                {canEditGrade ? <div className="flex items-center gap-2">
 
                     <Select
                         value={gradeInput || "NONE"}
@@ -578,7 +602,7 @@ function RosterRow({
                         <Check />
                     </Button>
 
-                </div>
+                </div> : <Badge variant="outline">{enrollment.grade || "Not graded"}</Badge>}
 
             </TableCell>
 

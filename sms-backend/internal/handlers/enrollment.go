@@ -9,6 +9,7 @@ import (
 
 	"sms-backend/internal/dto"
 	"sms-backend/internal/helpers"
+	"sms-backend/internal/models"
 	"sms-backend/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,9 @@ func (h *EnrollmentHandler) Enroll(c *gin.Context) {
 		helpers.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
+	if !h.professorOwnsCourse(c, req.CourseCode) {
+		return
+	}
 
 	if err := h.service.Enroll(studentId, req); err != nil {
 		helpers.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -61,6 +65,9 @@ func (h *EnrollmentHandler) Unenroll(c *gin.Context) {
 	}
 
 	courseCode := c.Param("courseCode")
+	if !h.professorOwnsCourse(c, courseCode) {
+		return
+	}
 
 	if err := h.service.Unenroll(studentId, courseCode); err != nil {
 		helpers.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -81,6 +88,9 @@ func (h *EnrollmentHandler) UpdateGrade(c *gin.Context) {
 	}
 
 	courseCode := c.Param("courseCode")
+	if !h.professorOwnsCourse(c, courseCode) {
+		return
+	}
 
 	var req dto.UpdateEnrollmentRequest
 
@@ -99,7 +109,13 @@ func (h *EnrollmentHandler) UpdateGrade(c *gin.Context) {
 
 // GET /enrollments lists every enrollment across the system.
 func (h *EnrollmentHandler) GetAll(c *gin.Context) {
-	enrollments, err := h.service.GetAll()
+	var enrollments []models.Enrollment
+	var err error
+	if c.GetString("role") == "professor" {
+		enrollments, err = h.service.GetByProfessor(c.GetString("subjectID"))
+	} else {
+		enrollments, err = h.service.GetAll()
+	}
 
 	if err != nil {
 		helpers.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -133,6 +149,9 @@ func (h *EnrollmentHandler) GetByStudent(c *gin.Context) {
 func (h *EnrollmentHandler) GetByCourse(c *gin.Context) {
 
 	courseCode := c.Param("code")
+	if !h.professorOwnsCourse(c, courseCode) {
+		return
+	}
 
 	enrollments, err := h.service.GetByCourse(courseCode)
 
@@ -142,4 +161,16 @@ func (h *EnrollmentHandler) GetByCourse(c *gin.Context) {
 	}
 
 	helpers.SuccessResponse(c, http.StatusOK, enrollments)
+}
+
+func (h *EnrollmentHandler) professorOwnsCourse(c *gin.Context, courseCode string) bool {
+	if c.GetString("role") != "professor" {
+		return true
+	}
+	owned, err := h.service.ProfessorTeaches(c.GetString("subjectID"), courseCode)
+	if err != nil || !owned {
+		helpers.ErrorResponse(c, http.StatusForbidden, "you can only manage your own courses")
+		return false
+	}
+	return true
 }

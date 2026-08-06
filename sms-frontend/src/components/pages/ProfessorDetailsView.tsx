@@ -14,6 +14,7 @@ import { Card } from "../ui/Card";
 import Modal from "../ui/Modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/Select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
+import { useAuth } from "../../context/AuthContext";
 
 const scheduleDays = [
     { key: "M", label: "Monday" }, { key: "T", label: "Tuesday" },
@@ -39,7 +40,10 @@ function endTime(value: string) {
 }
 
 export default function ProfessorDetailsView() {
-    const { professorId } = useParams();
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin";
+    const { professorId: routeProfessorId } = useParams();
+    const professorId = routeProfessorId ?? (user?.role === "professor" ? user.subjectId ?? undefined : undefined);
     const navigate = useNavigate();
     const [assignOpen, setAssignOpen] = useState(false);
     const [selectedCourseCode, setSelectedCourseCode] = useState("");
@@ -79,7 +83,7 @@ export default function ProfessorDetailsView() {
 
     return (
         <div className="space-y-6">
-            <Button variant="outline" onClick={() => navigate("/professors")} className="w-fit"><ArrowLeft /> Back to Professors</Button>
+            {isAdmin && <Button variant="outline" onClick={() => navigate("/professors")} className="w-fit"><ArrowLeft /> Back to Professors</Button>}
 
             {!professorLoading && professor && <div className="space-y-1">
                 <h1 className="text-4xl font-bold tracking-tight">{professor.name}</h1>
@@ -102,13 +106,13 @@ export default function ProfessorDetailsView() {
             <Card padding="responsive">
                 <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div><h2 className="text-xl font-semibold">Courses Being Taught</h2><p className="text-sm text-muted-foreground">Current teaching assignments</p></div>
-                    <Button onClick={() => setAssignOpen(true)}><Plus /> Add Course</Button>
+                    {isAdmin && <Button onClick={() => setAssignOpen(true)}><Plus /> Add Course</Button>}
                 </div>
                 {coursesLoading ? <p className="text-sm text-muted-foreground">Loading courses...</p> : courses.length === 0 ?
                     <p className="py-8 text-center text-sm text-muted-foreground">No courses assigned.</p> :
                     <Table><TableHeader><TableRow><TableHead>Course</TableHead><TableHead>Title</TableHead><TableHead>Credits</TableHead><TableHead>Students</TableHead><TableHead>Schedule</TableHead></TableRow></TableHeader>
                         <TableBody>{courses.map((course) => <TableRow key={course.code}>
-                            <TableCell><Link to={`/courses/${course.code}`}><Badge variant="outline" className="font-mono">{course.code}</Badge></Link></TableCell>
+                            <TableCell><Link to={`/courses/${course.code}`}><Badge variant="outline" className="cursor-pointer font-mono transition-colors hover:bg-accent hover:text-accent-foreground">{course.code}</Badge></Link></TableCell>
                             <TableCell className="font-medium">{course.title}</TableCell><TableCell>{course.credits}</TableCell>
                             <TableCell>{rosterCounts.get(course.code) ?? 0}</TableCell><TableCell><CourseSchedule course={course} /></TableCell>
                         </TableRow>)}</TableBody></Table>}
@@ -116,14 +120,14 @@ export default function ProfessorDetailsView() {
 
             <ProfessorWeeklySchedule courses={courses} />
 
-            <Modal isOpen={assignOpen} onClose={() => setAssignOpen(false)} title="Assign a Course">
+            {isAdmin && <Modal isOpen={assignOpen} onClose={() => setAssignOpen(false)} title="Assign a Course">
                 <div className="space-y-4"><div><label htmlFor="assign-course" className="mb-2 block text-sm font-medium">Course</label>
                     <Select value={selectedCourseCode} onValueChange={setSelectedCourseCode}><SelectTrigger id="assign-course" className="w-full"><SelectValue placeholder="Select an unassigned course" /></SelectTrigger>
                         <SelectContent>{availableCourses.map((course) => <SelectItem key={course.code} value={course.code}>{course.code} — {course.title}</SelectItem>)}</SelectContent></Select>
                     {availableCourses.length === 0 && <p className="mt-2 text-sm text-muted-foreground">No unassigned courses are available.</p>}
                 </div><div className="flex justify-end gap-2 pt-2"><Button variant="outline" onClick={() => setAssignOpen(false)}>Cancel</Button>
                     <Button onClick={assignCourse} disabled={!selectedCourseCode || updateCourse.isPending}>{updateCourse.isPending ? "Assigning..." : "Assign Course"}</Button></div></div>
-            </Modal>
+            </Modal>}
         </div>
     );
 }

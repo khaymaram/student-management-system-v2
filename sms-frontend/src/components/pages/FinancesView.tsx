@@ -95,7 +95,7 @@ export function FinancesView() {
 
     const openEditFinanceModal = (finance: { studentId: number; paid: number; isInState: boolean; scholarship: number }) => {
         setEditingFinance(finance);
-        setEditScholarship(String(finance.scholarship));
+        setEditScholarship(currency.format(finance.scholarship));
         setEditResidency(finance.isInState);
     };
 
@@ -117,8 +117,8 @@ export function FinancesView() {
     const handleSaveFinance = () => {
         if (!editingFinance) return;
 
-        const scholarship = Number(editScholarship);
-        if (Number.isNaN(scholarship) || scholarship < 0) {
+        const scholarship = parseCurrencyInput(editScholarship);
+        if (!editScholarship || Number.isNaN(scholarship) || scholarship < 0) {
             toast.error("Scholarship must be a valid non-negative number.");
             return;
         }
@@ -312,10 +312,11 @@ export function FinancesView() {
             <Modal isOpen={!!editingFinance} onClose={closeEditFinanceModal} title="Edit Finance">
                 <div className="space-y-4">
                     <Input
-                        label="Scholarship ($)"
-                        inputMode="decimal"
+                        label="Scholarship Amount"
+                        inputMode="numeric"
                         placeholder="Enter Scholarship Amount"
-                        onChange={(event) => setEditScholarship(event.target.value)}
+                        value={editScholarship}
+                        onChange={(event) => setEditScholarship(formatCurrencyInput(event.target.value))}
                     />
 
                     <div className="space-y-2">
@@ -374,4 +375,13 @@ export function FinancesView() {
             </Modal>
         </>
     );
+}
+
+function formatCurrencyInput(value: string): string {
+    const digits = value.replace(/\D/g, "");
+    return digits ? currency.format(Number(digits)) : "";
+}
+
+function parseCurrencyInput(value: string): number {
+    return Number(value.replace(/[$,]/g, ""));
 }

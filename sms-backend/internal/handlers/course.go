@@ -37,12 +37,12 @@ func NewCourseHandler(service services.CourseService) *CourseHandler {
 // 		return
 // 	}
 
-// 	helpers.SuccessResponse(
-// 		c,
-// 		http.StatusOK,
-// 		courses,
-// 	)
-// }
+//		helpers.SuccessResponse(
+//			c,
+//			http.StatusOK,
+//			courses,
+//		)
+//	}
 func (h *CourseHandler) GetAll(c *gin.Context) {
 	// Determine whether this is a paginated request.
 	// The normal frontend useCourses() hook calls /courses without
@@ -61,6 +61,9 @@ func (h *CourseHandler) GetAll(c *gin.Context) {
 	// ---------------------------------------------------------
 	if pageValue == "" && limitValue == "" {
 		professorID := c.Query("professorId")
+		if c.GetString("role") == "professor" {
+			professorID = c.GetString("subjectID")
+		}
 
 		// Preserve the existing professor filter behavior.
 		if professorID != "" {
@@ -131,6 +134,9 @@ func (h *CourseHandler) GetAll(c *gin.Context) {
 	code := c.Query("code")
 	title := c.Query("title")
 	professorID := c.Query("professorId")
+	if c.GetString("role") == "professor" {
+		professorID = c.GetString("subjectID")
+	}
 
 	var credits *int
 
@@ -162,7 +168,7 @@ func (h *CourseHandler) GetAll(c *gin.Context) {
 
 	totalPages := int(
 		math.Ceil(
-			float64(total)/float64(limit),
+			float64(total) / float64(limit),
 		),
 	)
 
@@ -204,6 +210,10 @@ func (h *CourseHandler) GetByCode(c *gin.Context) {
 			http.StatusNotFound,
 			err.Error(),
 		)
+		return
+	}
+	if c.GetString("role") == "professor" && (course.ProfessorID == nil || *course.ProfessorID != c.GetString("subjectID")) {
+		helpers.ErrorResponse(c, http.StatusForbidden, "you can only view your own courses")
 		return
 	}
 
@@ -296,8 +306,6 @@ func (h *CourseHandler) Update(c *gin.Context) {
 func (h *CourseHandler) Delete(c *gin.Context) {
 	courseCode := c.Param("code")
 
-	
-
 	err := h.service.Delete(courseCode)
 	if err != nil {
 		helpers.ErrorResponse(
@@ -371,4 +379,3 @@ func (h *CourseHandler) FilterByCredits(c *gin.Context) {
 		courses,
 	)
 }
-

@@ -12,6 +12,9 @@ import (
 // It drops the existing local tables first so older incompatible definitions
 // do not prevent the enrollment table from being created on SQL Server.
 func Migrate(db *gorm.DB) error {
+	if err := dropTableIfExists(db, &models.User{}); err != nil {
+		return err
+	}
 	if err := dropTableIfExists(db, &models.Enrollment{}); err != nil {
 		return err
 	}
@@ -37,6 +40,7 @@ func Migrate(db *gorm.DB) error {
 	}
 
 	return db.AutoMigrate(
+		&models.User{},
 		&models.Major{},
 		&models.Student{},
 		&models.Finance{},

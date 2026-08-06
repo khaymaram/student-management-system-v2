@@ -9,7 +9,10 @@ import (
 type Config struct {
 	Server ServerConfig
 	DB     DatabaseConfig
+	Auth   AuthConfig
 }
+
+type AuthConfig struct{ JWTSecret string }
 
 type ServerConfig struct {
 	Port string
@@ -38,5 +41,6 @@ func Load() *Config {
 			Password: os.Getenv("DB_PASSWORD"),
 			Name:     os.Getenv("DB_NAME"),
 		},
+		Auth: AuthConfig{JWTSecret: os.Getenv("JWT_SECRET")},
 	}
 }

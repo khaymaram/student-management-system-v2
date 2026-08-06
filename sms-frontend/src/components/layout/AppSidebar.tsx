@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, UserCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import SidebarItem from '../ui/SidebarItem';
 import { navigationItems } from '@/data/navigation';
+import { useAuth } from '@/context/AuthContext';
 const logo = new URL('../../assets/logo.png', import.meta.url).href;
 
 const AppSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useAuth();
+  const items = navigationItems.filter((item) => !item.roles || (user && item.roles.includes(user.role)));
 
   return (
     <>
@@ -55,24 +59,35 @@ const AppSidebar = () => {
               isCollapsed ? 'overflow-visible' : 'overflow-y-auto'
             }`}
           >
-            {navigationItems.map((item, index) => (
-              <SidebarItem key={index} item={item} isCollapsed={isCollapsed} />
-            ))}
+            {items.map((item, index) => {
+              const resolvedItem = user?.role === 'student' && item.label === 'Courses'
+                ? { ...item, path: '/my-courses' }
+                : user?.role === 'student' && item.label === 'Finances'
+                  ? { ...item, path: '/my-finances' }
+                : user?.role === 'professor' && item.label === 'Dashboard'
+                  ? { ...item, path: '/professor-dashboard' }
+                  : item;
+              return <SidebarItem key={index} item={resolvedItem} isCollapsed={isCollapsed} />;
+            })}
           </nav>
 
           {/* Footer */}
           <div className="p-4 border-t border-sidebar-border transition-all duration-300">
-            <div className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : ''}`}>
+            <Link
+              to="/account"
+              aria-label="Open user account"
+              className={`flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-sidebar-accent ${isCollapsed ? 'justify-center' : ''}`}
+            >
               <div className="w-10 h-10 bg-sidebar-accent rounded-full flex items-center justify-center text-sidebar-foreground font-semibold shrink-0">
-                <GraduationCap size={18} />
+                <UserCircle size={20} />
               </div>
               {!isCollapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">Simple SMS</p>
-                  <p className="text-xs text-sidebar-foreground/70 truncate">Student Management System</p>
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.name}</p>
+                  <p className="text-xs capitalize text-sidebar-foreground/70 truncate">{user?.role === 'professor' ? 'Teacher' : user?.role}</p>
                 </div>
               )}
-            </div>
+            </Link>
           </div>
         </div>
       </aside>

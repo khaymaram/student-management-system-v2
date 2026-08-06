@@ -74,6 +74,7 @@ const emptyForm = {
   name: "",
   grade: "",
   majorId: "",
+  isInState: true,
 };
 
 export function StudentsView() {
@@ -164,7 +165,7 @@ export function StudentsView() {
     setEditingStudent(student);
 
     setEditForm({
-      studentId: String(student.studentId), name: student.name, grade: String(student.grade), majorId: String(student.majorId),
+      studentId: String(student.studentId), name: student.name, grade: String(student.grade), majorId: String(student.majorId), isInState: true,
     });
 
     setEditFieldErrors({});
@@ -220,7 +221,11 @@ export function StudentsView() {
       onSuccess: () => {
         setAddForm({ ...emptyForm });
         setIsAddModalOpen(false);
-        toast.success(`Enrolled ${result.data.name} (ID ${result.data.studentId}) in the roster.`);
+        const emailName = result.data.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        toast.success(
+          `Student created. Login: ${result.data.studentId} · Password: Student${result.data.studentId}! · Email: ${emailName}${result.data.studentId}@grgi.edu`,
+          { duration: 12000 }
+        );
       },
       onError: (err) => toast.error(apiErrorMessage(err)),
     });
@@ -527,25 +532,34 @@ export function StudentsView() {
             required
           />
 
-          <Input
-            label="Grade"
-            id="grade"
-            inputMode="numeric"
-            placeholder="3"
-            value={
-              addForm.grade
-            }
-            onChange={(e) =>
-              handleAddFormChange(
-                "grade",
-                e.target.value
-              )
-            }
-            error={
-              addFieldErrors.grade
-            }
-            required
-          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label="Grade"
+              id="grade"
+              inputMode="numeric"
+              placeholder="3"
+              value={addForm.grade}
+              onChange={(e) => handleAddFormChange("grade", e.target.value)}
+              error={addFieldErrors.grade}
+              required
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-foreground/80">Residency</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={addForm.isInState}
+                onClick={() => setAddForm((current) => ({ ...current, isInState: !current.isInState }))}
+                className={`h-10 w-full rounded-lg border px-3 text-sm font-semibold shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${addForm.isInState
+                  ? "border-[#1D4ED8] bg-[#DBEAFE] text-[#1D4ED8] hover:bg-[#DBEAFE]/75"
+                  : "border-[#6D28D9] bg-[#EDE9FE] text-[#6D28D9] hover:bg-[#EDE9FE]/75"
+                }`}
+              >
+                {addForm.isInState ? "In-state" : "Out-of-state"}
+              </button>
+            </div>
+          </div>
 
           <div>
             <label className="mb-2 block text-sm font-medium" htmlFor="add-major">

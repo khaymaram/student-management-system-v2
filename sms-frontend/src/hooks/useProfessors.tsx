@@ -16,12 +16,13 @@ export interface PaginatedProfessors {
     data: Professor[]; page: number; pageSize: number; total: number; totalPages: number;
 }
 
-export function useProfessors(filter: ProfessorFilter = { type: "all"}){
+export function useProfessors(filter: ProfessorFilter = { type: "all"}, enabled = true){
     // React Query fetches students from the backend and caches the result.
     // The query key includes the current filter so different views can reuse
     // their own cached data without interfering with each other.
     return useQuery<Professor[]>({
         queryKey: ["professors", filter],
+        enabled,
         queryFn: async () => {
             switch (filter.type) {
                 case "search": {

@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"sms-backend/internal/handlers"
+	"sms-backend/internal/middleware"
+	"sms-backend/internal/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,13 +20,19 @@ func Setup(
 	professorHandler *handlers.ProfessorHandler,
 	financeHandler *handlers.FinanceHandler,
 	majorHandler *handlers.MajorHandler,
+	authHandler *handlers.AuthHandler,
+	authService *services.AuthService,
 ) *gin.Engine {
 
 	router := gin.Default()
 
 	// Enable CORS so the browser frontend can talk to the backend during development.
 	// Without this, modern browsers would block the API request as a cross-origin call.
-	router.Use(cors.Default())
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:5173"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+	}))
 
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(
@@ -38,7 +46,16 @@ func Setup(
 	// Group all student endpoints under /api for a clean backend URL structure.
 	// The frontend calls /api/students, /api/students/:id, and related routes.
 	api := router.Group("/api")
+	api.POST("/auth/login", authHandler.Login)
+	api.Use(middleware.Authenticate(authService), middleware.Authorize())
 	{
+		auth := api.Group("/auth")
+		{
+			auth.GET("/me", authHandler.Me)
+			auth.PUT("/me", authHandler.UpdateMe)
+			auth.PUT("/password", authHandler.Password)
+			auth.DELETE("/me", authHandler.DeleteMe)
+		}
 		api.GET("/majors", majorHandler.GetAll)
 
 		enrollments := api.Group("/enrollments")

@@ -5,6 +5,7 @@ package services
 
 import (
 	"errors"
+	"strconv"
 
 	"sms-backend/internal/dto"
 	"sms-backend/internal/models"
@@ -45,15 +46,17 @@ type studentService struct {
 	enrollmentRepository repositories.EnrollmentRepository
 	financeRepository    repositories.FinanceRepository
 	majorRepository      repositories.MajorRepository
+	authService          *AuthService
 }
 
-func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository, fRepo repositories.FinanceRepository, mRepo repositories.MajorRepository) StudentService {
+func NewStudentService(repo repositories.StudentRepository, eRepo repositories.EnrollmentRepository, fRepo repositories.FinanceRepository, mRepo repositories.MajorRepository, auth *AuthService) StudentService {
 
 	return &studentService{
 		repository:           repo,
 		enrollmentRepository: eRepo,
 		financeRepository:    fRepo,
 		majorRepository:      mRepo,
+		authService:          auth,
 	}
 }
 
@@ -124,7 +127,16 @@ func (s *studentService) Create(req dto.CreateStudentRequest) error {
 		finance.Tuition = OutStateTuition
 	}
 
-	return s.financeRepository.Create(&finance)
+	if err := s.financeRepository.Create(&finance); err != nil {
+		_ = s.repository.Delete(student.ID)
+		return err
+	}
+	if _, _, err := s.authService.CreateLinkedAccount(student.Name, "student", strconv.Itoa(student.ID)); err != nil {
+		_ = s.financeRepository.Delete(student.ID)
+		_ = s.repository.Delete(student.ID)
+		return err
+	}
+	return nil
 }
 
 func (s *studentService) Update(
@@ -165,6 +177,9 @@ func (s *studentService) Delete(id int) error {
 		return err
 	}
 	if err := s.enrollmentRepository.DeleteByStudent(id); err != nil {
+		return err
+	}
+	if err := s.authService.DeleteLinkedAccount("student", strconv.Itoa(id)); err != nil {
 		return err
 	}
 	return s.repository.Delete(id)

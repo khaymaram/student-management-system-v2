@@ -22,6 +22,8 @@ type EnrollmentService interface {
 	GetAll() ([]models.Enrollment, error)
 	GetByStudent(studentId int) ([]models.Enrollment, error)
 	GetByCourse(courseCode string) ([]models.Enrollment, error)
+	GetByProfessor(professorID string) ([]models.Enrollment, error)
+	ProfessorTeaches(professorID, courseCode string) (bool, error)
 }
 
 type enrollmentService struct {
@@ -141,6 +143,18 @@ func (s *enrollmentService) UpdateGrade(studentId int, courseCode string, req dt
 
 func (s *enrollmentService) GetAll() ([]models.Enrollment, error) {
 	return s.repository.GetAll()
+}
+
+func (s *enrollmentService) GetByProfessor(professorID string) ([]models.Enrollment, error) {
+	return s.repository.GetByProfessor(professorID)
+}
+
+func (s *enrollmentService) ProfessorTeaches(professorID, courseCode string) (bool, error) {
+	course, err := s.courseRepository.GetByCode(courseCode)
+	if err != nil {
+		return false, err
+	}
+	return course.ProfessorID != nil && *course.ProfessorID == professorID, nil
 }
 
 func (s *enrollmentService) GetByStudent(studentId int) ([]models.Enrollment, error) {

@@ -2,6 +2,15 @@
 // StudentSchema describes the API shape and StudentInputSchema validates form data.
 import { z } from "zod";
 
+export type UserRole = "admin" | "student" | "professor";
+export interface UserAccount {
+    id: number;
+    name: string;
+    email: string;
+    role: UserRole;
+    subjectId?: string | null;
+}
+
 function capitalizeWords(str: string): string {
     return str.replace(/\b\w/g, char => char.toUpperCase());
 }
@@ -46,6 +55,7 @@ export const StudentInputSchema = z.object({
     name: z.string().min(1, "Name is required").transform(value => capitalizeWords(value.trim())),
     grade: z.coerce.number().int().min(1, "Lowest grade level is 1").max(4, "Highest grade level is 4"),
 	majorId: z.coerce.number().int().positive("Major is required"),
+	isInState: z.boolean().optional(),
 });
 export type StudentInput = z.infer<typeof StudentInputSchema>;
 

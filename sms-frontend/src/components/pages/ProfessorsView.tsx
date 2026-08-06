@@ -152,7 +152,11 @@ export function ProfessorsView() {
             onSuccess: () => {
                 setAddForm({ ...emptyForm });
                 setIsAddModalOpen(false);
-                toast.success(`Registered ${result.data.name} (ID ${result.data.id}) in the directory.`);
+                const emailName = result.data.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+                toast.success(
+                    `Professor created. Login: ${result.data.id} · Password: Teacher${result.data.id}! · Email: ${emailName}${result.data.id.toLowerCase()}@grgi.edu`,
+                    { duration: 12000 }
+                );
             },
             onError: (err) => toast.error(apiErrorMessage(err)),
         });

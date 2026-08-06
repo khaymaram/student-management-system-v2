@@ -30,9 +30,11 @@ func main() {
 	studentRepository := repositories.NewStudentRepository(db)
 	financeRepository := repositories.NewFinanceRepository(db)
 	majorRepository := repositories.NewMajorRepository(db)
+	authService := services.NewAuthService(db, cfg.Auth.JWTSecret)
+	authHandler := handlers.NewAuthHandler(authService)
 
 	studentService :=
-		services.NewStudentService(studentRepository, enrollmentRepository, financeRepository, majorRepository)
+		services.NewStudentService(studentRepository, enrollmentRepository, financeRepository, majorRepository, authService)
 
 	studentHandler :=
 		handlers.NewStudentHandler(studentService)
@@ -63,7 +65,7 @@ func main() {
 		repositories.NewProfessorRepository(db)
 
 	professorService :=
-		services.NewProfessorService(professorRepository, courseRepository)
+		services.NewProfessorService(professorRepository, courseRepository, authService)
 
 	professorHandler :=
 		handlers.NewProfessorHandler(professorService)
@@ -76,6 +78,8 @@ func main() {
 			professorHandler,
 			financeHandler,
 			majorHandler,
+			authHandler,
+			authService,
 		)
 
 	err = router.Run(

@@ -20,9 +20,20 @@ type EnrollmentRepository interface {
 	GetAll() ([]models.Enrollment, error)
 	GetByStudent(studentId int) ([]models.Enrollment, error)
 	GetByCourse(courseCode string) ([]models.Enrollment, error)
+	GetByProfessor(professorID string) ([]models.Enrollment, error)
 
 	DeleteByCourse(courseCode string) error
 	DeleteByStudent(studentId int) error
+}
+
+func (r *enrollmentRepository) GetByProfessor(professorID string) ([]models.Enrollment, error) {
+	var enrollments []models.Enrollment
+	err := r.db.Model(&models.Enrollment{}).
+		Joins("JOIN dbo.courses ON dbo.courses.code = dbo.Enrollments.course_code").
+		Where("dbo.courses.professor_id = ?", professorID).
+		Preload("Student").Preload("Course").Preload("Course.Professor").
+		Order("dbo.Enrollments.created_at desc").Find(&enrollments).Error
+	return enrollments, err
 }
 
 type enrollmentRepository struct {

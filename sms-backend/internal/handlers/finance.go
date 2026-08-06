@@ -136,6 +136,22 @@ func (h *FinanceHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// Students may pay only their own balance. Keep tuition status and
+	// scholarship admin-controlled, and reject reductions or overpayments.
+	if c.GetString("role") == "student" {
+		finance, err := h.service.GetFinance(studentID)
+		if err != nil {
+			helpers.ErrorResponse(c, http.StatusNotFound, err.Error())
+			return
+		}
+		if req.Paid < finance.Paid || req.Paid > finance.Paid+finance.Remaining {
+			helpers.ErrorResponse(c, http.StatusBadRequest, "payment must be between zero and the remaining balance")
+			return
+		}
+		req.Scholarship = finance.Scholarship
+		req.IsInState = finance.IsInState
+	}
+
 	if err := h.service.UpdateFinance(studentID, req); err != nil {
 		helpers.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

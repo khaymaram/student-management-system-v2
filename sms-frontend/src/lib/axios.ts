@@ -31,6 +31,12 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("sms_auth_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export async function get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
   // Send a GET request and unwrap the backend's standardized response.
   // The backend returns { success: true, data: ... }, so this helper returns
